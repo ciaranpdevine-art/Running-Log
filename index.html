@@ -1,0 +1,1927 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ciaran's Running Log</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Running Log">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#F6F7F9">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F6F7F9;
+    --surface:#FFFFFF;
+    --surface-alt:#EEF0F3;
+    --line:#E1E4E9;
+    --text:#1B1E24;
+    --muted:#6B7280;
+    --hivis:#5C8A00;
+    --sky:#2F7DE1;
+    --danger:#DC3545;
+    --amber:#B4690E;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased;}
+  .display{font-family:'Bebas Neue',sans-serif;letter-spacing:0.02em;}
+  .mono{font-family:'IBM Plex Mono',monospace;}
+
+  header{padding:28px 16px 18px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:10;}
+  .brand{display:flex;align-items:baseline;gap:10px;margin-bottom:18px;}
+  .brand .bolt{color:var(--hivis);font-size:22px;}
+  .brand h1{font-size:24px;margin:0;line-height:1.1;}
+  .brand .sub{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:0.12em;}
+
+  .hero-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+  .stat{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 8px;text-align:center;}
+  .stat .num{font-family:'Bebas Neue',sans-serif;font-size:26px;color:var(--hivis);line-height:1;}
+  .stat .lbl{font-size:9px;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);margin-top:4px;}
+  .stat .sub2{font-size:9px;color:var(--muted);font-family:'IBM Plex Mono';margin-top:2px;}
+  @media(max-width:480px){.stat .num{font-size:20px;} .brand h1{font-size:19px;}}
+
+  .tabs{display:flex;gap:6px;margin-top:18px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:thin;scrollbar-color:var(--line) transparent;padding-bottom:6px;}
+  .tabs::-webkit-scrollbar{height:5px;}
+  .tabs::-webkit-scrollbar-track{background:transparent;}
+  .tabs::-webkit-scrollbar-thumb{background:var(--line);border-radius:4px;}
+  .tabs::-webkit-scrollbar-thumb:hover{background:var(--muted);}
+  .tab{flex:0 0 auto;white-space:nowrap;padding:10px 16px;text-align:center;background:var(--surface);border:1px solid var(--line);border-radius:8px;font-size:12px;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);cursor:pointer;font-weight:600;transition:all .15s;}
+  .tab.active{background:var(--hivis);color:#0F1115;border-color:var(--hivis);}
+
+  main{padding:18px 12px 60px;max-width:900px;margin:0 auto;}
+  .panel{display:none;}
+  .panel.active{display:block;}
+
+  .section-title{display:flex;justify-content:space-between;align-items:center;margin:4px 2px 12px;}
+  .section-title h2{font-family:'Bebas Neue';font-size:20px;margin:0;letter-spacing:0.03em;}
+  .add-btn{background:var(--hivis);color:#0F1115;border:none;border-radius:7px;padding:7px 12px;font-size:12px;font-weight:700;cursor:pointer;text-transform:uppercase;letter-spacing:0.05em;}
+  .add-btn:active{transform:scale(0.97);}
+  .ghost-btn{background:transparent;border:1px solid var(--line);color:var(--muted);border-radius:7px;padding:5px 8px;font-size:11px;cursor:pointer;}
+
+  /* ---- Week cards (compact, no charts) ---- */
+  .week-card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:8px;}
+  .week-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+  .week-range{font-family:'Bebas Neue';font-size:18px;letter-spacing:0.02em;}
+  .week-range .sep{color:var(--muted);margin:0 5px;font-family:'Inter';font-size:13px;}
+  .week-totals{text-align:right;}
+  .week-totals .mi{font-family:'Bebas Neue';font-size:22px;color:var(--hivis);line-height:1;}
+  .week-totals .pace{font-size:10px;color:var(--muted);margin-top:2px;}
+
+  .days-row{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:10px;}
+  .day-cell{background:var(--surface-alt);border:1px solid var(--line);border-radius:7px;padding:5px 2px;text-align:center;}
+  .day-cell .dlabel{font-size:8px;color:var(--muted);text-transform:uppercase;margin-bottom:3px;letter-spacing:.03em;}
+  .day-cell input[type=number]{width:100%;background:transparent;border:none;color:var(--hivis);text-align:center;font-family:'IBM Plex Mono';font-size:12px;font-weight:600;padding:2px 0;}
+  .day-cell select{width:100%;background:transparent;border:none;border-top:1px solid var(--line);color:var(--muted);text-align:center;font-size:8px;padding:3px 0 0;margin-top:2px;}
+  .day-cell select:focus, .day-cell input:focus{outline:1px solid var(--hivis);border-radius:4px;}
+  .split-link{display:block;font-size:8px;color:var(--sky);margin-top:2px;cursor:pointer;text-decoration:underline;line-height:1.3;}
+  .split-panel{grid-column:1/-1;background:var(--surface);border:1px dashed var(--sky);border-radius:8px;padding:8px 10px;margin-top:2px;}
+  .split-panel-title{font-size:10px;color:var(--muted);margin-bottom:6px;}
+  .split-row{display:grid;grid-template-columns:60px 1fr 20px;gap:6px;align-items:center;margin-bottom:5px;}
+  .split-row input{background:var(--surface-alt);border:1px solid var(--line);border-radius:5px;color:var(--hivis);text-align:center;font-family:'IBM Plex Mono';font-size:12px;padding:4px 0;}
+  .split-row select{background:var(--surface-alt);border:1px solid var(--line);border-radius:5px;color:var(--text);font-size:11px;padding:4px;}
+  .split-row .split-del{color:var(--danger);text-align:center;cursor:pointer;font-size:13px;}
+  .split-add{font-size:11px;color:var(--sky);cursor:pointer;display:inline-block;margin-top:2px;}
+  .split-note{font-size:9px;color:var(--muted);margin-top:6px;line-height:1.4;}
+  .split-close{font-size:10px;color:var(--muted);text-align:right;cursor:pointer;margin-top:6px;text-decoration:underline;}
+
+  .week-extra{display:grid;grid-template-columns:repeat(3, minmax(0,1fr));gap:6px;border-top:1px dashed var(--line);padding-top:10px;}
+  .field{display:flex;flex-direction:column;gap:2px;min-width:0;}
+  .field label{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;overflow-wrap:break-word;}
+  .field input{background:var(--surface-alt);border:1px solid var(--line);border-radius:6px;padding:6px 7px;color:var(--text);font-family:'IBM Plex Mono';font-size:12px;width:100%;min-width:0;box-sizing:border-box;}
+  .row-actions{text-align:right;margin-top:8px;}
+  .start-edit{display:flex;align-items:center;gap:6px;margin-bottom:8px;}
+  .start-edit label{font-size:9px;color:var(--muted);text-transform:uppercase;}
+  .start-edit input{background:var(--surface-alt);border:1px solid var(--line);border-radius:6px;color:var(--text);font-family:'IBM Plex Mono';font-size:11px;padding:4px 6px;}
+
+  /* ---- Monthly year filter ---- */
+  .year-chips{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;}
+  .race-type-select{width:100%;background:var(--surface);border:1px solid var(--line);border-radius:8px;color:var(--text);font-family:'IBM Plex Mono';font-size:13px;padding:9px 10px;margin-bottom:12px;-webkit-appearance:none;appearance:none;}
+  .year-chip{padding:6px 14px;border-radius:20px;background:var(--surface);border:1px solid var(--line);color:var(--muted);font-family:'IBM Plex Mono';font-size:12px;cursor:pointer;font-weight:600;}
+  .year-chip.active{background:var(--sky);color:#0F1115;border-color:var(--sky);}
+  .year-adj{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;gap:10px;}
+  .year-adj .yl{font-size:11px;color:var(--muted);line-height:1.4;}
+  .year-adj input{width:80px;background:var(--surface-alt);border:1px solid var(--line);border-radius:6px;padding:6px 7px;color:var(--amber);font-family:'IBM Plex Mono';font-size:13px;text-align:right;}
+  .mo-note{color:var(--muted);font-size:10px;text-align:center;margin-top:8px;line-height:1.5;}
+  .chart-wrap{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px;margin-top:14px;}
+  .chart-title{font-family:'Bebas Neue';font-size:15px;letter-spacing:.02em;margin-bottom:8px;color:var(--text);}
+  .chart-svg{width:100%;height:auto;display:block;}
+  .chart-legend{display:flex;flex-wrap:wrap;gap:10px;margin-top:8px;justify-content:center;}
+  .legend-item{display:flex;align-items:center;gap:5px;font-family:'IBM Plex Mono';font-size:11px;color:var(--muted);cursor:pointer;padding:3px 6px;border-radius:5px;}
+  .legend-item.active{color:var(--text);background:var(--surface-alt);}
+  .legend-item .dot{width:8px;height:8px;border-radius:50%;display:inline-block;}
+  .manual-cell input{width:100%;background:var(--surface-alt);border:1px solid var(--line);border-radius:5px;color:var(--amber);text-align:center;font-family:'IBM Plex Mono';font-size:12px;padding:3px 0;}
+
+  /* ---- Monthly table ---- */
+  .m-table{width:100%;border-collapse:collapse;background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;font-size:12px;}
+  .m-table th{background:var(--surface-alt);color:var(--muted);text-transform:uppercase;font-size:9px;letter-spacing:.07em;padding:8px 4px;text-align:center;font-weight:600;}
+  .m-table td{padding:6px 3px;text-align:center;border-top:1px solid var(--line);}
+  .m-table td input{width:100%;background:transparent;border:none;color:var(--text);text-align:center;font-family:'IBM Plex Mono';font-size:12px;}
+  .m-table tr.totals td{color:var(--hivis);font-weight:600;border-top:2px solid var(--line);}
+  .m-table .del{color:var(--danger);cursor:pointer;font-size:14px;}
+  .table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+
+  /* ---- Shoes ---- */
+  .shoe-card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:10px;}
+  .shoe-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:8px;}
+  .shoe-top-left{display:flex;align-items:center;gap:6px;flex:1;min-width:0;}
+  .shoe-name{background:transparent;border:none;color:var(--text);font-family:'Bebas Neue';font-size:19px;width:100%;min-width:0;}
+  .shoe-total{font-family:'IBM Plex Mono';font-size:13px;color:var(--muted);white-space:nowrap;}
+  .reorder-btns{display:flex;flex-direction:column;gap:2px;}
+  .reorder-btns span{font-size:10px;color:var(--muted);cursor:pointer;line-height:1;padding:2px 4px;border:1px solid var(--line);border-radius:4px;background:var(--surface-alt);}
+  .reorder-btns span.disabled{opacity:0.3;pointer-events:none;}
+  .wear-bar{width:100%;height:8px;background:var(--surface-alt);border-radius:5px;overflow:hidden;margin-bottom:10px;}
+  .wear-fill{height:100%;border-radius:5px;transition:width .4s ease;}
+  .shoe-fields{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:8px;}
+  .shoe-fields.second{grid-template-columns:repeat(3,1fr);}
+  .retired-toggle{color:var(--sky);font-size:12px;cursor:pointer;text-align:center;padding:8px 0;text-decoration:underline;}
+  .shoe-card.retired-card{opacity:0.7;}
+  .retired-actions{display:flex;gap:10px;margin-top:8px;}
+  .retired-actions .ghost-btn{flex:1;text-align:center;}
+
+  footer.note{color:var(--muted);font-size:11px;text-align:center;padding:20px 20px 40px;line-height:1.6;}
+  .dash-week-range{font-family:'Bebas Neue';font-size:19px;margin-bottom:10px;}
+  .dash-week-range .sep{color:var(--muted);margin:0 5px;font-family:'Inter';font-size:13px;}
+  .dash-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px;}
+  .dash-days{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;}
+  .dash-day{background:var(--surface-alt);border:1px solid var(--line);border-radius:7px;padding:6px 2px;text-align:center;}
+  .dash-day .dl{font-size:8px;color:var(--muted);text-transform:uppercase;margin-bottom:3px;}
+  .dash-day .dv{font-family:'IBM Plex Mono';font-size:12px;font-weight:600;color:var(--hivis);}
+  .dash-day.rest .dv{color:var(--muted);}
+  .dash-empty{color:var(--muted);font-size:12px;text-align:center;padding:10px 0;}
+  .plan-controls{display:flex;align-items:center;gap:8px;margin-bottom:10px;font-size:12px;color:var(--muted);}
+  .plan-controls input{width:56px;background:var(--surface-alt);border:1px solid var(--line);border-radius:6px;color:var(--text);font-family:'IBM Plex Mono';font-size:13px;padding:5px 6px;text-align:center;}
+  #planTable td input{width:100%;background:transparent;border:none;color:var(--hivis);text-align:center;font-family:'IBM Plex Mono';font-size:12px;padding:4px 0;}
+  #planTable td input:focus{outline:1px solid var(--hivis);border-radius:4px;}
+  #planTable tr.current-week{background:rgba(92,138,0,0.08);}
+  #planTable tr.current-week td:first-child{color:var(--hivis);font-weight:600;}
+
+  /* ---- Calendar ---- */
+  .cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+  .cal-month-title{font-family:'Bebas Neue';font-size:19px;letter-spacing:0.03em;}
+  .cal-legend{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:12px;}
+  .cal-legend-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted);}
+  .cal-legend-item .dot{width:10px;height:10px;border-radius:3px;display:inline-block;}
+  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-bottom:14px;}
+  .cal-dow{font-size:9px;color:var(--muted);text-transform:uppercase;text-align:center;padding-bottom:4px;letter-spacing:.05em;}
+  .cal-cell{aspect-ratio:1;border-radius:8px;border:1px solid var(--line);background:var(--surface);padding:4px;display:flex;flex-direction:column;justify-content:space-between;cursor:pointer;position:relative;}
+  .cal-cell.blank{background:transparent;border:none;cursor:default;}
+  .cal-cell.today{border:2px solid var(--sky);}
+  .cal-cell.selected{outline:2px solid var(--hivis);outline-offset:1px;}
+  .cal-cell .cal-daynum{font-size:10px;color:var(--muted);font-family:'IBM Plex Mono';}
+  .cal-cell .cal-miles{font-size:12px;font-weight:700;font-family:'IBM Plex Mono';color:var(--text);align-self:center;}
+  .cal-cell.future .cal-miles{color:var(--muted);}
+  .cal-day-editor{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px;}
+  .cal-day-editor-title{font-family:'Bebas Neue';font-size:18px;margin-bottom:10px;}
+  .cal-tag-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
+  .cal-tag-btn{padding:8px 12px;border-radius:8px;border:2px solid transparent;font-size:12px;font-weight:600;cursor:pointer;color:#fff;}
+  .cal-tag-btn.active{border-color:var(--text);}
+  .cal-tag-btn.clear{background:var(--surface-alt);color:var(--muted);border:1px solid var(--line);}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <h1>Ciaran's Running Log</h1>
+  </div>
+  <div class="tabs">
+    <div class="tab active" data-tab="dashboard">Dashboard</div>
+    <div class="tab" data-tab="weekly">Weekly</div>
+    <div class="tab" data-tab="planning">Planning</div>
+    <div class="tab" data-tab="calendar">Calendar</div>
+    <div class="tab" data-tab="monthly">Monthly</div>
+    <div class="tab" data-tab="shoes">Shoes</div>
+    <div class="tab" data-tab="races">Races</div>
+  </div>
+</header>
+
+<main>
+  <div class="panel active" id="panel-dashboard">
+    <div class="section-title"><h2>This Year</h2></div>
+    <div id="dashYearStats" style="margin-bottom:16px;"></div>
+
+    <div class="section-title"><h2>This Month</h2></div>
+    <div id="dashMonthStats" style="margin-bottom:16px;"></div>
+
+    <div class="chart-wrap" style="margin-top:0;margin-bottom:16px;">
+      <div class="chart-title">Last 16 weeks · total mileage</div>
+      <div id="trendChart"></div>
+      <div class="mo-note">Tap a point to see that week's detail below.</div>
+    </div>
+
+    <div class="section-title">
+      <h2 id="weekDetailTitle">Week Detail</h2>
+      <span class="ghost-btn" id="resetWeekDetail">Current week</span>
+    </div>
+    <div class="week-card" id="dashWeekCard" style="margin-bottom:16px;"></div>
+
+    <div class="chart-wrap">
+      <div class="chart-title">Backup &amp; Restore</div>
+      <div class="mo-note" style="margin:0 0 10px;">Export everything (weekly log, monthly adjustments, shoes, races) as a backup file, or restore from a previous export. Restoring overwrites what's currently saved on this device.</div>
+      <div style="display:flex;gap:10px;">
+        <button class="add-btn" id="exportDataBtn" style="flex:1;">Export Data</button>
+        <button class="add-btn" id="importDataBtn" style="flex:1;background:var(--surface-alt);color:var(--text);border:1px solid var(--line);">Import Data</button>
+      </div>
+      <input type="file" id="importFileInput" accept="application/json,.json" style="display:none;">
+    </div>
+  </div>
+
+  <div class="panel" id="panel-weekly">
+    <div class="section-title"><h2>Weekly Log</h2><button class="add-btn" id="addWeek">+ Add Week</button></div>
+    <div id="weeklyList"></div>
+    <div class="retired-toggle" id="archivedWeeksToggle"></div>
+    <div id="archivedWeeksList"></div>
+  </div>
+
+  <div class="panel" id="panel-planning">
+    <div class="section-title"><h2>Planning</h2></div>
+    <div class="plan-controls">
+      <label>Show next</label>
+      <input type="number" id="planWeeksInput" min="1" max="60" value="8">
+      <label>weeks</label>
+    </div>
+    <div class="table-scroll">
+      <table class="m-table" id="planTable">
+        <thead><tr>
+          <th>W/C</th><th>Mon</th><th>Tue</th><th>Wed</th><th>Thu</th><th>Fri</th><th>Sat</th><th>Sun</th><th>Total</th>
+        </tr></thead>
+        <tbody id="planBody"></tbody>
+      </table>
+    </div>
+    <div class="mo-note">Totals here show everything planned, including days that haven't happened yet — they'll roll into your real totals once each date arrives.</div>
+  </div>
+
+  <div class="panel" id="panel-calendar">
+    <div class="cal-nav">
+      <span class="ghost-btn" id="calPrev">‹ Prev</span>
+      <div class="cal-month-title" id="calMonthTitle"></div>
+      <span class="ghost-btn" id="calNext">Next ›</span>
+    </div>
+    <div class="cal-legend" id="calLegend"></div>
+    <div class="cal-grid" id="calGrid"></div>
+    <div class="chart-title" style="margin-top:4px;">Run types this month</div>
+    <div class="hero-stats" id="calTally" style="grid-template-columns:repeat(3,1fr);margin-bottom:14px;"></div>
+    <div id="calDayEditor"></div>
+  </div>
+
+  <div class="panel" id="panel-monthly">
+    <div class="section-title"><h2>Monthly Summary</h2><button class="add-btn" id="addYear">+ Add Year</button></div>
+    <div class="year-chips" id="yearChips"></div>
+    <div class="year-adj" id="yearAdjWrap"></div>
+    <div class="table-scroll">
+      <table class="m-table" id="monthTable">
+        <thead><tr>
+          <th>Month</th><th>Miles</th><th>Runs</th><th>Off</th><th>Days</th><th>MPR</th><th>MPD</th><th>Elev</th>
+        </tr></thead>
+        <tbody id="monthBody"></tbody>
+      </table>
+    </div>
+    <div class="mo-note" id="moNote"></div>
+
+    <div class="chart-wrap">
+      <div class="chart-title">Year on year · miles by month</div>
+      <div id="yoyChart"></div>
+    </div>
+
+    <div class="section-title" style="margin-top:18px;"><h2>Miles by Month &amp; Year</h2></div>
+    <div class="table-scroll">
+      <table class="m-table" id="pivotTable">
+        <thead><tr id="pivotHeadRow"></tr></thead>
+        <tbody id="pivotBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="panel" id="panel-shoes">
+    <div class="section-title"><h2>Shoe Rotation</h2><button class="add-btn" id="addShoe">+ Add Shoe</button></div>
+    <div id="shoesList"></div>
+    <div class="retired-toggle" id="retiredToggle"></div>
+    <div id="retiredList"></div>
+  </div>
+
+  <div class="panel" id="panel-races">
+    <div class="section-title"><h2>Race History</h2><button class="add-btn" id="addRace">+ Add Race</button></div>
+    <div id="raceStats" style="margin-bottom:12px;"></div>
+    <select id="raceTypeSelect" class="race-type-select"></select>
+    <div class="table-scroll">
+      <table class="m-table" id="raceTable">
+        <thead><tr>
+          <th>Type</th><th>Race</th><th>Date</th><th>Time</th><th>Dist</th><th>Pace</th><th>Result</th><th>Note</th><th></th>
+        </tr></thead>
+        <tbody id="raceBody"></tbody>
+      </table>
+    </div>
+
+    <div class="section-title" style="margin-top:20px;"><h2>Yearly Breakdown</h2></div>
+    <div class="table-scroll">
+      <table class="m-table" id="raceYearTable">
+        <thead><tr>
+          <th>Year</th><th>10mile</th><th>Half M</th><th>Marathon</th><th>Ultra&nbsp;&amp;&nbsp;M</th><th>Total</th><th>%</th><th>Miles</th><th>%</th>
+        </tr></thead>
+        <tbody id="raceYearBody"></tbody>
+      </table>
+    </div>
+    <div class="mo-note">Ultra &amp; M groups Ultra, Mountain, and any other non-standard race type. Auto-built from Race History above.</div>
+  </div>
+
+  <footer class="note">2026 mi per shoe is auto-tallied from the shoe you log against each run in Weekly. Retirement line set at 400 mi.</footer>
+</main>
+
+<script>
+const DAYS = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+let weekly = [], monthly = [], shoes = [], races = [], yearMeta = [], manualPBs = {};
+let selectedRaceType = 'All';
+let selectedMonthlyYear = new Date().getFullYear();
+let openSplitKeys = new Set();
+let planWeeksAhead = 8;
+let selectedTrendWeekId = null;
+let showRetiredShoes = false;
+let showArchivedWeeks = false;
+let calendarYear, calendarMonth, selectedCalendarDate = null;
+{
+  const n = new Date();
+  calendarYear = n.getFullYear();
+  calendarMonth = n.getMonth();
+}
+const TAG_COLORS = { easy:'#5C8A00', session:'#DC3545', easylong:'#2F7DE1', trail:'#B4690E', race:'#8B5FBF' };
+const TAG_LABELS = { easy:'Easy', session:'Session', easylong:'Easy Long', trail:'Trail', race:'Race' };
+let uid = 0;
+const newId = () => 'id' + (Date.now()) + (uid++);
+
+function isoAddDays(iso, n){
+  const [y,m,d] = iso.split('-').map(Number);
+  const dt = new Date(Date.UTC(y, m-1, d));
+  dt.setUTCDate(dt.getUTCDate()+n);
+  return dt.toISOString().slice(0,10);
+}
+function fmtShort(iso){
+  if(!iso) return '—';
+  const [y,m,d] = iso.split('-').map(Number);
+  const dt = new Date(Date.UTC(y, m-1, d));
+  return dt.toLocaleDateString('en-GB',{day:'2-digit',month:'short',timeZone:'UTC'});
+}
+const WEEKDAY_NAMES = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+function weekdayShort(dateISO){
+  const [y,m,d] = dateISO.split('-').map(Number);
+  const dt = new Date(Date.UTC(y,m-1,d));
+  return WEEKDAY_NAMES[dt.getUTCDay()];
+}
+
+// ---------- seed data ----------
+function seedData(){
+  manualPBs = { fiveK: '19:35' };
+  weekly = [
+    // Partial week: Thu 1 Jan – Sun 4 Jan, before the logging start. All 0 miles, added purely
+    // so Jan's Off/Days figures on the Monthly tab reconcile correctly against a full 31-day month.
+    {id:newId(), start:'2026-01-01', days:[0,0,0,0].map(m=>({miles:m,shoe:'',splits:[]})), elev:0, totalTime:'', pace:''},
+    {id:newId(), start:'2026-01-05', days:[0,0,0,0,0,5,0].map(m=>({miles:m,shoe:'',splits:[]})), elev:26, totalTime:'0:48:00', pace:'9:36'},
+    {id:newId(), start:'2026-01-12', days:[0,6,0,6,0,11,0].map(m=>({miles:m,shoe:'',splits:[]})), elev:138, totalTime:'3:27:00', pace:'8:46'},
+    {id:newId(), start:'2026-01-19', days:[7,0,7,0,0,0,0].map(m=>({miles:m,shoe:'',splits:[]})), elev:48, totalTime:'2:04:00', pace:'8:51'},
+    {id:newId(), start:'2026-01-26', days:[0,0,0,6,7,4,0].map(m=>({miles:m,shoe:'',splits:[]})), elev:191, totalTime:'2:31:00', pace:'8:37'},
+    {id:newId(), start:'2026-02-02', days:[7,0,6,0,9,0,0].map(m=>({miles:m,shoe:'',splits:[]})), elev:358, totalTime:'3:17:00', pace:'8:41'},
+    {id:newId(), start:'2026-02-09', days:[0,0,0,0,10,8,5].map(m=>({miles:m,shoe:'',splits:[]})), elev:183, totalTime:'3:23:00', pace:'8:38'},
+    {id:newId(), start:'2026-02-16', days:[0,3,7,0,7,2,8].map(m=>({miles:m,shoe:'',splits:[]})), elev:1848, totalTime:'5:54:00', pace:'12:41'},
+    {id:newId(), start:'2026-02-23', days:[0,5,7,0,4,9,0].map(m=>({miles:m,shoe:'',splits:[]})), elev:560, totalTime:'4:15:00', pace:'8:55'},
+    {id:newId(), start:'2026-03-02', days:[0,0,0,0,0,0,0].map(m=>({miles:m,shoe:'',splits:[]})), elev:719, totalTime:'', pace:''},
+    {id:newId(), start:'2026-03-09', days:[0,0,0,0,0,0,0].map(m=>({miles:m,shoe:'',splits:[]})), elev:880, totalTime:'', pace:''},
+    {id:newId(), start:'2026-03-16', days:[0,0,0,0,0,0,0].map(m=>({miles:m,shoe:'',splits:[]})), elev:732, totalTime:'', pace:''},
+    {id:newId(), start:'2026-03-23', days:[0,0,0,0,0,0,0].map(m=>({miles:m,shoe:'',splits:[]})), elev:427, totalTime:'', pace:''},
+    {id:newId(), start:'2026-03-30', days:[0,0,0,0,0,0,0].map(m=>({miles:m,shoe:'',splits:[]})), elev:998, totalTime:'', pace:''},
+    {id:newId(), start:'2026-04-06', days:[0,0,0,0,0,0,0].map(m=>({miles:m,shoe:'',splits:[]})), elev:2624, totalTime:'', pace:''},
+    {id:newId(), start:'2026-04-13', days:[0,0,0,0,0,0,0].map(m=>({miles:m,shoe:'',splits:[]})), elev:1283, totalTime:'', pace:''},
+    {id:newId(), start:'2026-04-20', days:[0,0,0,0,0,0,0].map(m=>({miles:m,shoe:'',splits:[]})), elev:2412, totalTime:'', pace:''},
+    {id:newId(), start:'2026-04-27', days:[0,0,0,0,0,0,0].map(m=>({miles:m,shoe:'',splits:[]})), elev:587, totalTime:'', pace:''},
+    {id:newId(), start:'2026-05-04', days:[0,0,0,0,0,0,0].map(m=>({miles:m,shoe:'',splits:[]})), elev:2844, totalTime:'', pace:''},
+    {id:newId(), start:'2026-05-11', days:[0,0,0,0,0,0,0].map(m=>({miles:m,shoe:'',splits:[]})), elev:542, totalTime:'', pace:''},
+    {id:newId(), start:'2026-05-18', days:[0,0,0,0,0,0,0].map(m=>({miles:m,shoe:'',splits:[]})), elev:4661, totalTime:'', pace:''},
+    {id:newId(), start:'2026-05-25', days:[0,0,0,0,0,0,0].map(m=>({miles:m,shoe:'',splits:[]})), elev:649, totalTime:'', pace:''},
+    {id:newId(), start:'2026-06-01', days:[0,5,4,5,3,5,0].map(m=>({miles:m,shoe:'',splits:[]})), elev:774, totalTime:'3:29:00', pace:'9:01'},
+    {id:newId(), start:'2026-06-08', days:[0,4,10,0,5,33,0].map(m=>({miles:m,shoe:'',splits:[]})), elev:686, totalTime:'8:09:00', pace:'9:19'},
+    {id:newId(), start:'2026-06-15', days:[3,5,0,9,7,0,0].map(m=>({miles:m,shoe:'',splits:[]})), elev:346, totalTime:'3:58:00', pace:'9:27'},
+    {id:newId(), start:'2026-06-22', days:[0,6,11,7,0,10,9].map(m=>({miles:m,shoe:'',splits:[]})), elev:0, totalTime:'', pace:''},
+    {id:newId(), start:'2026-06-29', days:[0,3,4,5,0,50,0].map(m=>({miles:m,shoe:'',splits:[]})), elev:0, totalTime:'', pace:''},
+    {id:newId(), start:'2026-07-06', days:[0,0,0,4,0,6,0].map(m=>({miles:m,shoe:'',splits:[]})), elev:0, totalTime:'', pace:''},
+    {id:newId(), start:'2026-07-13', days:[0,0,0,0,0,0,0].map(m=>({miles:m,shoe:'',splits:[]})), elev:0, totalTime:'', pace:''},
+  ];
+  monthly = [
+    // 2024 predates the daily log, so these months are entered manually rather than derived
+    {id:newId(), key:'2024-01', elev:0, manualMiles:232, manualRuns:31, manualOff:0},
+    {id:newId(), key:'2024-02', elev:0, manualMiles:177, manualRuns:20, manualOff:9},
+    {id:newId(), key:'2024-03', elev:0, manualMiles:270, manualRuns:23, manualOff:8},
+    {id:newId(), key:'2024-04', elev:0, manualMiles:227, manualRuns:23, manualOff:7},
+    {id:newId(), key:'2024-05', elev:0, manualMiles:179, manualRuns:19, manualOff:12},
+    {id:newId(), key:'2024-06', elev:0, manualMiles:240, manualRuns:23, manualOff:7},
+    {id:newId(), key:'2024-07', elev:0, manualMiles:230, manualRuns:28, manualOff:3},
+    {id:newId(), key:'2024-08', elev:0, manualMiles:170, manualRuns:19, manualOff:12},
+    {id:newId(), key:'2024-09', elev:0, manualMiles:186, manualRuns:22, manualOff:8},
+    {id:newId(), key:'2024-10', elev:0, manualMiles:194, manualRuns:23, manualOff:8},
+    {id:newId(), key:'2024-11', elev:0, manualMiles:213, manualRuns:25, manualOff:5},
+    {id:newId(), key:'2024-12', elev:0, manualMiles:197, manualRuns:22, manualOff:9},
+    // 2025 also predates the daily log
+    {id:newId(), key:'2025-01', elev:0, manualMiles:220.1, manualRuns:23, manualOff:8},
+    {id:newId(), key:'2025-02', elev:0, manualMiles:242.9, manualRuns:26, manualOff:2},
+    {id:newId(), key:'2025-03', elev:0, manualMiles:314.5, manualRuns:31, manualOff:0},
+    {id:newId(), key:'2025-04', elev:0, manualMiles:194.5, manualRuns:26, manualOff:4},
+    {id:newId(), key:'2025-05', elev:0, manualMiles:156.5, manualRuns:21, manualOff:10},
+    {id:newId(), key:'2025-06', elev:0, manualMiles:236.2, manualRuns:23, manualOff:7},
+    {id:newId(), key:'2025-07', elev:0, manualMiles:271.2, manualRuns:26, manualOff:5},
+    {id:newId(), key:'2025-08', elev:0, manualMiles:182.5, manualRuns:15, manualOff:16},
+    {id:newId(), key:'2025-09', elev:0, manualMiles:168.0, manualRuns:18, manualOff:12},
+    {id:newId(), key:'2025-10', elev:0, manualMiles:164.6, manualRuns:25, manualOff:6},
+    {id:newId(), key:'2025-11', elev:0, manualMiles:315.5, manualRuns:28, manualOff:2},
+    {id:newId(), key:'2025-12', elev:0, manualMiles:98.4, manualRuns:14, manualOff:17},
+    // 2020-2023: only monthly mileage totals exist for these years, no runs/off breakdown
+    {id:newId(), key:'2020-01', elev:0, manualMiles:83, manualRuns:'', manualOff:''},
+    {id:newId(), key:'2020-02', elev:0, manualMiles:0, manualRuns:'', manualOff:''},
+    {id:newId(), key:'2020-03', elev:0, manualMiles:0, manualRuns:'', manualOff:''},
+    {id:newId(), key:'2020-04', elev:0, manualMiles:0, manualRuns:'', manualOff:''},
+    {id:newId(), key:'2020-05', elev:0, manualMiles:0, manualRuns:'', manualOff:''},
+    {id:newId(), key:'2020-06', elev:0, manualMiles:0, manualRuns:'', manualOff:''},
+    {id:newId(), key:'2020-07', elev:0, manualMiles:0, manualRuns:'', manualOff:''},
+    {id:newId(), key:'2020-08', elev:0, manualMiles:30, manualRuns:'', manualOff:''},
+    {id:newId(), key:'2020-09', elev:0, manualMiles:73, manualRuns:'', manualOff:''},
+    {id:newId(), key:'2020-10', elev:0, manualMiles:45, manualRuns:'', manualOff:''},
+    {id:newId(), key:'2020-11', elev:0, manualMiles:76, manualRuns:'', manualOff:''},
+    {id:newId(), key:'2020-12', elev:0, manualMiles:66, manualRuns:'', manualOff:''},
+    {id:newId(), key:'2021-01', elev:0, manualMiles:121, manualRuns:'', manualOff:''},
+    {id:newId(), key:'2021-02', elev:0, manualMiles:111, manualRuns:'', manualOff:''},
+    {id:newId(), key:'2021-03', elev:0, manualMiles:163, manualRuns:'', manualOff:''},
+    {id:newId(), key:'2021-04', elev:0, manualMiles:171, manualRuns:'', manualOff:''},
+    {id:newId(), key:'2021-05', elev:0, manualMiles:125, manualRuns:'', manualOff:''},
+    {id:newId(), key:'2021-06', elev:0, manualMiles:159, manualRuns:'', manualOff:''},
+    {id:newId(), key:'2021-07', elev:0, manualMiles:106, manualRuns:'', manualOff:''},
+    {id:newId(), key:'2021-08', elev:0, manualMiles:69, manualRuns:'', manualOff:''},
+    {id:newId(), key:'2021-09', elev:0, manualMiles:157, manualRuns:'', manualOff:''},
+    {id:newId(), key:'2021-10', elev:0, manualMiles:141, manualRuns:'', manualOff:''},
+    {id:newId(), key:'2021-11', elev:0, manualMiles:200, manualRuns:'', manualOff:''},
+    {id:newId(), key:'2021-12', elev:0, manualMiles:44, manualRuns:'', manualOff:''},
+    {id:newId(), key:'2022-01', elev:0, manualMiles:50, manualRuns:'', manualOff:''},
+    {id:newId(), key:'2022-02', elev:0, manualMiles:50, manualRuns:'', manualOff:''},
+    {id:newId(), key:'2022-03', elev:0, manualMiles:50, manualRuns:'', manualOff:''},
+    {id:newId(), key:'2022-04', elev:0, manualMiles:50, manualRuns:'', manualOff:''},
+    {id:newId(), key:'2022-05', elev:0, manualMiles:50, manualRuns:'', manualOff:''},
+    {id:newId(), key:'2022-06', elev:0, manualMiles:69, manualRuns:'', manualOff:''},
+    {id:newId(), key:'2022-07', elev:0, manualMiles:96, manualRuns:'', manualOff:''},
+    {id:newId(), key:'2022-08', elev:0, manualMiles:92, manualRuns:'', manualOff:''},
+    {id:newId(), key:'2022-09', elev:0, manualMiles:109, manualRuns:'', manualOff:''},
+    {id:newId(), key:'2022-10', elev:0, manualMiles:89, manualRuns:'', manualOff:''},
+    {id:newId(), key:'2022-11', elev:0, manualMiles:99, manualRuns:'', manualOff:''},
+    {id:newId(), key:'2022-12', elev:0, manualMiles:94, manualRuns:'', manualOff:''},
+    {id:newId(), key:'2023-01', elev:0, manualMiles:180, manualRuns:'', manualOff:''},
+    {id:newId(), key:'2023-02', elev:0, manualMiles:222, manualRuns:'', manualOff:''},
+    {id:newId(), key:'2023-03', elev:0, manualMiles:214, manualRuns:'', manualOff:''},
+    {id:newId(), key:'2023-04', elev:0, manualMiles:59, manualRuns:'', manualOff:''},
+    {id:newId(), key:'2023-05', elev:0, manualMiles:72, manualRuns:'', manualOff:''},
+    {id:newId(), key:'2023-06', elev:0, manualMiles:164, manualRuns:'', manualOff:''},
+    {id:newId(), key:'2023-07', elev:0, manualMiles:212, manualRuns:'', manualOff:''},
+    {id:newId(), key:'2023-08', elev:0, manualMiles:115, manualRuns:'', manualOff:''},
+    {id:newId(), key:'2023-09', elev:0, manualMiles:126, manualRuns:'', manualOff:''},
+    {id:newId(), key:'2023-10', elev:0, manualMiles:89, manualRuns:'', manualOff:''},
+    {id:newId(), key:'2023-11', elev:0, manualMiles:117, manualRuns:'', manualOff:''},
+    {id:newId(), key:'2023-12', elev:0, manualMiles:142, manualRuns:'', manualOff:''},
+  ];
+  yearMeta = [
+    {id:newId(), year:2020, untracked:0},
+    {id:newId(), year:2021, untracked:0},
+    {id:newId(), year:2022, untracked:0},
+    {id:newId(), year:2023, untracked:0},
+    {id:newId(), year:2024, untracked:45.9},
+    {id:newId(), year:2025, untracked:0},
+    {id:newId(), year:2026, untracked:0},
+  ];
+  shoes = [
+    {id:newId(), name:'Asics', pre:0, bought:'2026-01-11', price:60},
+    {id:newId(), name:'Hoka Ariha', pre:0, bought:'2026-02-16', price:85},
+    {id:newId(), name:'Zoom Fly 6', pre:21, bought:'2025-12-01', price:83},
+    {id:newId(), name:'Hoka SG 6', pre:94, bought:'2025-09-13', price:126},
+    {id:newId(), name:'Vaporfly 3', pre:416, bought:'2026-06-19', price:235},
+    {id:newId(), name:'Vaporfly 4', pre:75, bought:'2026-06-30', price:204},
+  ];
+  races = [
+    {id:newId(), type:'Half Marathon', race:'Derry Half', date:'Sep-11', time:'01:44:00', dist:13.1, pos:'', note:''},
+    {id:newId(), type:'Marathon', race:'Belfast', date:'May-12', time:'03:28:33', dist:26.2, pos:'367/2918', note:''},
+    {id:newId(), type:'Half Marathon', race:'Derry Half', date:'Sep-12', time:'01:44:00', dist:13.1, pos:'', note:''},
+    {id:newId(), type:'Half Marathon', race:'Omagh', date:'Mar-15', time:'01:38:41', dist:13.1, pos:'', note:''},
+    {id:newId(), type:'Marathon', race:'Derry', date:'May-15', time:'03:28:20', dist:26.2, pos:'152/1101', note:''},
+    {id:newId(), type:'10 Miler', race:'Derry', date:'Mar-17', time:'01:22:31', dist:10, pos:'', note:''},
+    {id:newId(), type:'Half Marathon', race:'Omagh', date:'Apr-17', time:'01:53:00', dist:13.1, pos:'719/3184', note:''},
+    {id:newId(), type:'Half Marathon', race:'Strabane', date:'May-17', time:'01:52:03', dist:13.1, pos:'', note:'305'},
+    {id:newId(), type:'Marathon', race:'Derry', date:'Jun-17', time:'04:26:24', dist:26.2, pos:'768/1217', note:''},
+    {id:newId(), type:'Half Marathon', race:'Derry Half', date:'Sep-17', time:'01:54:24', dist:13.1, pos:'649/1726', note:'226'},
+    {id:newId(), type:'Half Marathon', race:'Belfast', date:'Sep-17', time:'01:54:13', dist:13.1, pos:'', note:''},
+    {id:newId(), type:'Half Marathon', race:'Omagh', date:'Apr-18', time:'01:51:55', dist:13.1, pos:'801/2951', note:'869'},
+    {id:newId(), type:'10 Miler', race:'Derry', date:'Mar-19', time:'01:19:34', dist:10, pos:'287/1047', note:'27%'},
+    {id:newId(), type:'Half Marathon', race:'Omagh', date:'Apr-19', time:'01:45:08', dist:13.1, pos:'669/3295', note:''},
+    {id:newId(), type:'10 Miler', race:'Derry', date:'Mar-20', time:'01:17:45', dist:10, pos:'257/1079', note:'24%'},
+    {id:newId(), type:'10 Miler', race:'Derry', date:'Mar-22', time:'01:14:12', dist:10, pos:'214/1289', note:'17%'},
+    {id:newId(), type:'Half Marathon', race:'Strabane', date:'May-22', time:'01:46:21', dist:13.1, pos:'275/868', note:''},
+    {id:newId(), type:'Mountain', race:'Seven Sisters', date:'May-22', time:'08:32:00', dist:19, pos:'227/254', note:''},
+    {id:newId(), type:'Half Marathon', race:'Derry Half', date:'Sep-22', time:'01:42:17', dist:13.1, pos:'246/1237', note:''},
+    {id:newId(), type:'Half Marathon', race:'Belfast', date:'Sep-22', time:'01:37:04', dist:13.1, pos:'', note:''},
+    {id:newId(), type:'Mountain', race:'Sliabh Liag', date:'Nov-22', time:'01:52:20', dist:8, pos:'54/139', note:''},
+    {id:newId(), type:'10 Miler', race:'Derry', date:'Mar-23', time:'01:13:00', dist:10, pos:'209/1347', note:'16%'},
+    {id:newId(), type:'Marathon', race:'Belfast', date:'Apr-23', time:'03:49:00', dist:26.2, pos:'1017/3345', note:''},
+    {id:newId(), type:'Half Marathon', race:'Strabane', date:'Jun-23', time:'01:56:45', dist:13.1, pos:'426/851', note:''},
+    {id:newId(), type:'Ultra', race:'Bluestack', date:'Aug-23', time:'07:25:00', dist:31.25, pos:'', note:''},
+    {id:newId(), type:'Half Marathon', race:"L'Kenny", date:'Aug-23', time:'01:35:45', dist:13.1, pos:'', note:''},
+    {id:newId(), type:'Half Marathon', race:'Derry Half', date:'Sep-23', time:'01:39:19', dist:13.1, pos:'229/1560', note:''},
+    {id:newId(), type:'Half Marathon', race:'Belfast', date:'Sep-23', time:'01:34:30', dist:13.1, pos:'', note:''},
+    {id:newId(), type:'10 Miler', race:'Derry', date:'Mar-24', time:'01:11:20', dist:10, pos:'179/1589', note:'11%'},
+    {id:newId(), type:'Ultra', race:'6hr Endurance', date:'May-24', time:'05:51:00', dist:34, pos:'', note:'3rd'},
+    {id:newId(), type:'Ultra', race:'Norn Iron Mini', date:'Jun-24', time:'07:04:00', dist:38, pos:'', note:'6th'},
+    {id:newId(), type:'Half Marathon', race:'Kinnego Bay', date:'Aug-24', time:'01:42:15', dist:13.1, pos:'', note:'6th'},
+    {id:newId(), type:'Half Marathon', race:'Malin Head', date:'Aug-24', time:'01:42:15', dist:13.1, pos:'', note:'5th'},
+    {id:newId(), type:'Half Marathon', race:'Mamore Gap', date:'Aug-24', time:'01:47:30', dist:13.1, pos:'', note:'5th'},
+    {id:newId(), type:'Half Marathon', race:'Muff', date:'Aug-24', time:'01:39:00', dist:13.1, pos:'', note:'9th'},
+    {id:newId(), type:'Half Marathon', race:'Derry Half', date:'Sep-24', time:'01:31:23', dist:13.1, pos:'102/1841', note:''},
+    {id:newId(), type:'Mountain', race:'Seven Sisters', date:'Sep-24', time:'02:57:00', dist:11, pos:'', note:''},
+    {id:newId(), type:'3/4 Marathon', race:'Ballybofy', date:'Oct-24', time:'02:24:00', dist:19.8, pos:'', note:'37th'},
+    {id:newId(), type:'10 Miler', race:'Derry', date:'Mar-25', time:'01:09:22', dist:10, pos:'144/2103', note:'7%'},
+    {id:newId(), type:'Half Marathon', race:'Omagh', date:'Apr-25', time:'01:28:40', dist:13.1, pos:'226/3993', note:''},
+    {id:newId(), type:'Marathon', race:'Belfast', date:'May-25', time:'03:35:00', dist:26.2, pos:'', note:''},
+    {id:newId(), type:'Half Marathon', race:'Strabane', date:'May-25', time:'01:29:15', dist:13.1, pos:'', note:''},
+    {id:newId(), type:'Mountain', race:'Sliabh Liag', date:'May-25', time:'', dist:7.5, pos:'', note:''},
+    {id:newId(), type:'Ultra', race:'Norn Iron Mini', date:'Jun-25', time:'06:16:00', dist:37, pos:'2/28.', note:''},
+    {id:newId(), type:'Marathon', race:'Kinnego Bay', date:'Aug-25', time:'', dist:26.2, pos:'', note:''},
+    {id:newId(), type:'Marathon', race:'Malin Head', date:'Aug-25', time:'', dist:26.2, pos:'', note:''},
+    {id:newId(), type:'Marathon', race:'Mamore Gap', date:'Aug-25', time:'', dist:26.2, pos:'', note:''},
+    {id:newId(), type:'Marathon', race:'Muff', date:'Aug-25', time:'', dist:26.2, pos:'', note:''},
+    {id:newId(), type:'Half Marathon', race:'Derry Half', date:'Sep-25', time:'', dist:13.1, pos:'', note:''},
+    {id:newId(), type:'Ultra', race:'EcoTrail', date:'Sep-25', time:'', dist:50, pos:'', note:''},
+  ];
+}
+
+// ---------- storage (plain browser localStorage — works standalone, no Claude runtime needed) ----------
+const storage = {
+  async get(key){
+    try{
+      const v = localStorage.getItem(key);
+      return v===null ? null : {key, value:v};
+    }catch(e){ return null; }
+  },
+  async set(key, value){
+    try{
+      localStorage.setItem(key, value);
+      return {key, value};
+    }catch(e){ return null; }
+  }
+};
+async function loadAll(){
+  try{
+    const w = await storage.get('weekly-data-v5');
+    const m = await storage.get('monthly-data-v7');
+    const s = await storage.get('shoes-data-v3');
+    const r = await storage.get('races-data-v1');
+    const y = await storage.get('year-meta-v1');
+    const p = await storage.get('manual-pbs-v1');
+    if(w && m && s && r && y && p){
+      weekly = JSON.parse(w.value);
+      monthly = JSON.parse(m.value);
+      shoes = JSON.parse(s.value);
+      races = JSON.parse(r.value);
+      yearMeta = JSON.parse(y.value);
+      manualPBs = JSON.parse(p.value);
+    } else {
+      seedData();
+      await saveAll();
+    }
+  }catch(e){
+    seedData();
+    try{ await saveAll(); }catch(e2){}
+  }
+  renderAll();
+}
+async function saveAll(){
+  try{
+    await storage.set('weekly-data-v5', JSON.stringify(weekly));
+    await storage.set('monthly-data-v7', JSON.stringify(monthly));
+    await storage.set('shoes-data-v3', JSON.stringify(shoes));
+    await storage.set('races-data-v1', JSON.stringify(races));
+    await storage.set('year-meta-v1', JSON.stringify(yearMeta));
+    await storage.set('manual-pbs-v1', JSON.stringify(manualPBs));
+  }catch(e){ console.error('save failed', e); }
+}
+
+// ---------- helpers ----------
+function timeToSec(t){
+  if(!t) return null;
+  const parts = t.split(':').map(Number);
+  if(parts.some(isNaN)) return null;
+  if(parts.length===3) return parts[0]*3600+parts[1]*60+parts[2];
+  if(parts.length===2) return parts[0]*60+parts[1];
+  return null;
+}
+function hmToSec(t){
+  // strictly H:MM (hours:minutes) — used for Weekly's Total Time field
+  if(!t) return null;
+  const parts = t.split(':').map(Number);
+  if(parts.length!==2 || parts.some(isNaN)) return null;
+  return parts[0]*3600 + parts[1]*60;
+}
+function secToHM(sec){
+  if(sec==null) return '—';
+  const h = Math.floor(sec/3600);
+  const m = Math.round((sec%3600)/60);
+  return h + ':' + String(m).padStart(2,'0');
+}
+function fmtNum(n, d=1){
+  n = Number(n)||0;
+  return (Math.round(n*Math.pow(10,d))/Math.pow(10,d)).toString();
+}
+function blankZero(v){
+  // show an empty box instead of "0" so tapping in and typing doesn't require deleting first
+  if(v===0 || v==='0' || v==null) return '';
+  return v;
+}
+function weekTotal(w){
+  const today = todayISO();
+  return w.days.reduce((sum,d,i)=>{
+    const dateISO = isoAddDays(w.start, i);
+    if(dateISO > today) return sum; // forward-planned entries don't count until that day arrives
+    return sum + (Number(d.miles)||0);
+  }, 0);
+}
+function rawWeekTotal(w){
+  // unfiltered sum, used only in Planning — shows everything planned, past or future
+  return w.days.reduce((a,d)=>a+(Number(d.miles)||0),0);
+}
+function paceToSec(p){
+  if(!p) return null;
+  const parts = p.split(':').map(Number);
+  if(parts.length!==2 || isNaN(parts[0]) || isNaN(parts[1])) return null;
+  return parts[0]*60+parts[1];
+}
+function secToPace(sec){
+  if(sec==null) return '—';
+  const m = Math.floor(sec/60), s = Math.round(sec%60);
+  return m+':'+String(s).padStart(2,'0');
+}
+function shoeMileage(shoeId){
+  let total = 0;
+  weekly.forEach(w=>w.days.forEach(d=>{
+    const splits = d.splits || [];
+    const splitTotal = splits.reduce((a,s)=>a+(Number(s.miles)||0),0);
+    if(d.shoe===shoeId) total += (Number(d.miles)||0) - splitTotal;
+    splits.forEach(s=>{ if(s.shoe===shoeId) total += Number(s.miles)||0; });
+  }));
+  return total;
+}
+
+// ---------- hero stats (kept as the shared refresh hook for weekly data changes) ----------
+function renderHero(){
+  renderDashboard();
+}
+
+// ---------- dashboard ----------
+function todayISO(){
+  const n = new Date();
+  return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}`;
+}
+function renderDashboard(){
+  const today = todayISO();
+  const year = today.slice(0,4);
+
+  // -- This Year --
+  const yearWeeks = weekly.filter(w => w.start.slice(0,4) === year);
+  const yearMetaEntry = yearMeta.find(y => Number(y.year) === Number(year));
+  const untracked = yearMetaEntry ? (Number(yearMetaEntry.untracked)||0) : 0;
+  const yMiles = yearWeeks.reduce((a,w)=>a+weekTotal(w),0) + untracked;
+  const yElev = yearWeeks.reduce((a,w)=>a+(Number(w.elev)||0),0);
+  let yRuns=0, yOff=0;
+  yearWeeks.forEach(w=>w.days.forEach((d,i)=>{
+    const dateISO = isoAddDays(w.start, i);
+    if(dateISO > today) return; // forward-planned entries don't count until that day arrives
+    const miles = Number(d.miles)||0;
+    if(miles>0){ yRuns++; } else { yOff++; }
+  }));
+  const yRunRate = (yRuns+yOff) ? (yRuns/(yRuns+yOff)*100) : 0;
+  const yPaceSecs = yearWeeks.map(w=>paceToSec(w.pace)).filter(s=>s!=null);
+  const yAvgPace = yPaceSecs.length ? secToPace(yPaceSecs.reduce((a,b)=>a+b,0)/yPaceSecs.length) : '—';
+  const yTimeSecs = yearWeeks.map(w=>hmToSec(w.totalTime)).filter(s=>s!=null);
+  const yTotalTime = yTimeSecs.length ? secToHM(yTimeSecs.reduce((a,b)=>a+b,0)) : '—';
+  document.getElementById('dashYearStats').innerHTML = `
+    <div class="stat" style="margin-bottom:8px;"><div class="num">${fmtNum(yMiles)}</div><div class="lbl">${year} Miles</div></div>
+    <div class="hero-stats" style="grid-template-columns:repeat(2,1fr);margin-bottom:8px;">
+      <div class="stat"><div class="num">${yTotalTime}</div><div class="lbl">Total Time</div></div>
+      <div class="stat"><div class="num">${yAvgPace}</div><div class="lbl">Avg Pace</div></div>
+    </div>
+    <div class="hero-stats" style="grid-template-columns:repeat(2,1fr);">
+      <div class="stat"><div class="num">${fmtNum(yElev,0)}</div><div class="lbl">Elev ft</div></div>
+      <div class="stat"><div class="num">${fmtNum(yRunRate,0)}%</div><div class="lbl">Run Rate</div><div class="sub2">${yRuns}/${yOff}</div></div>
+    </div>
+  `;
+
+  // -- This Month --
+  const monthKey = today.slice(0,7);
+  const agg = aggregateMonthly();
+  const ma = agg[monthKey] || {miles:0, runs:0, off:0};
+  const mDays = ma.runs + ma.off;
+  const mRunRate = mDays ? (ma.runs/mDays*100) : 0;
+  const monthEntry = monthly.find(m=>m.key===monthKey);
+  const mElev = monthEntry ? (Number(monthEntry.elev)||0) : 0;
+  const monthWeeks = weekly.filter(w => w.start.slice(0,7) === monthKey);
+  const mTimeSecs = monthWeeks.map(w=>hmToSec(w.totalTime)).filter(s=>s!=null);
+  const mTotalTime = mTimeSecs.length ? secToHM(mTimeSecs.reduce((a,b)=>a+b,0)) : '—';
+  document.getElementById('dashMonthStats').innerHTML = `
+    <div class="hero-stats" style="grid-template-columns:repeat(2,1fr);margin-bottom:8px;">
+      <div class="stat"><div class="num">${fmtNum(ma.miles)}</div><div class="lbl">Miles</div></div>
+      <div class="stat"><div class="num">${mTotalTime}</div><div class="lbl">Total Time</div></div>
+    </div>
+    <div class="hero-stats" style="grid-template-columns:repeat(2,1fr);">
+      <div class="stat"><div class="num">${fmtNum(mElev,0)}</div><div class="lbl">Elev ft</div></div>
+      <div class="stat"><div class="num">${fmtNum(mRunRate,0)}%</div><div class="lbl">Run Rate</div><div class="sub2">${ma.runs}/${ma.off}</div></div>
+    </div>
+  `;
+
+  renderTrendChart();
+  renderWeekDetail();
+}
+
+// -- Week Detail: shows whichever week was tapped on the trend chart, defaulting to the current week --
+function renderWeekDetail(){
+  const today = todayISO();
+  let detailWeek = null;
+  if(selectedTrendWeekId){
+    detailWeek = weekly.find(w => w.id === selectedTrendWeekId) || null;
+  }
+  if(!detailWeek){
+    detailWeek = weekly.find(w => today >= w.start && today <= isoAddDays(w.start, w.days.length-1));
+  }
+  if(!detailWeek && weekly.length){
+    detailWeek = [...weekly].filter(w=>w.start<=today).sort((a,b)=> b.start.localeCompare(a.start))[0];
+  }
+
+  const isCurrent = detailWeek && (today >= detailWeek.start && today <= isoAddDays(detailWeek.start, detailWeek.days.length-1));
+  document.getElementById('weekDetailTitle').textContent = isCurrent ? 'This Week' : 'Week Detail';
+  document.getElementById('resetWeekDetail').style.display = (selectedTrendWeekId && !isCurrent) ? 'inline-block' : 'none';
+
+  const wCard = document.getElementById('dashWeekCard');
+  if(!detailWeek){
+    wCard.innerHTML = `<div class="dash-empty">No weeks logged yet — add one on the Weekly tab.</div>`;
+    return;
+  }
+  const end = isoAddDays(detailWeek.start, detailWeek.days.length-1);
+  const total = weekTotal(detailWeek);
+  wCard.innerHTML = `
+    <div class="dash-week-range">${fmtShort(detailWeek.start)}<span class="sep">–</span>${fmtShort(end)}</div>
+    <div class="dash-stats">
+      <div class="stat"><div class="num">${fmtNum(total)}</div><div class="lbl">Miles</div></div>
+      <div class="stat"><div class="num">${fmtNum(Number(detailWeek.elev)||0,0)}</div><div class="lbl">Elev ft</div></div>
+      <div class="stat"><div class="num">${detailWeek.totalTime||'—'}</div><div class="lbl">Time</div></div>
+      <div class="stat"><div class="num">${detailWeek.pace||'—'}</div><div class="lbl">Avg Pace</div></div>
+    </div>
+    <div class="dash-days">
+      ${detailWeek.days.map((day,i)=>{
+        const m = Number(day.miles)||0;
+        const d = weekdayShort(isoAddDays(detailWeek.start, i));
+        return `<div class="dash-day ${m>0?'':'rest'}"><div class="dl">${d}</div><div class="dv">${m>0?fmtNum(m):'–'}</div></div>`;
+      }).join('')}
+    </div>
+  `;
+}
+
+function renderTrendChart(){
+  const container = document.getElementById('trendChart');
+  if(!container) return;
+  const today = todayISO();
+  const sorted = [...weekly].filter(w => w.start <= today).sort((a,b)=> a.start.localeCompare(b.start));
+  const last16 = sorted.slice(-16);
+  if(!last16.length){
+    container.innerHTML = `<div class="dash-empty">No weeks logged yet.</div>`;
+    return;
+  }
+  const w = 640, h = 220, padL = 32, padR = 10, padT = 14, padB = 22;
+  const plotW = w - padL - padR, plotH = h - padT - padB;
+  const vals = last16.map(wk => weekTotal(wk));
+  const maxVal = Math.max(10, ...vals);
+  const n = last16.length;
+  const xPos = i => n===1 ? padL : padL + (i/(n-1)) * plotW;
+  const yPos = v => padT + plotH - (v/maxVal) * plotH;
+
+  let gridLines = '';
+  const ticks = 4;
+  for(let t=0; t<=ticks; t++){
+    const v = maxVal/ticks*t;
+    const y = yPos(v);
+    gridLines += `<line x1="${padL}" y1="${y}" x2="${w-padR}" y2="${y}" stroke="#E1E4E9" stroke-width="1"/>`;
+    gridLines += `<text x="${padL-5}" y="${y+3}" text-anchor="end" font-size="9" fill="#6B7280" font-family="IBM Plex Mono">${Math.round(v)}</text>`;
+  }
+  const xLabels = last16.map((wk,i)=>
+    `<text x="${xPos(i)}" y="${h-6}" text-anchor="middle" font-size="9" fill="#6B7280" font-family="IBM Plex Mono">${fmtShort(wk.start)}</text>`
+  ).join('');
+
+  const pts = vals.map((v,i)=> `${xPos(i)},${yPos(v)}`).join(' ');
+  const areaPts = `${xPos(0)},${yPos(0)} ${pts} ${xPos(n-1)},${yPos(0)}`;
+
+  const currentWeek = weekly.find(wk => today >= wk.start && today <= isoAddDays(wk.start, wk.days.length-1));
+  const activeId = selectedTrendWeekId || (currentWeek ? currentWeek.id : null);
+
+  const dots = last16.map((wk,i)=>{
+    const isActive = wk.id === activeId;
+    return `<circle cx="${xPos(i)}" cy="${yPos(vals[i])}" r="${isActive?5:3}" fill="${isActive?'#2F7DE1':'#5C8A00'}" stroke="${isActive?'#FFFFFF':'none'}" stroke-width="${isActive?1.5:0}"/>
+            <circle cx="${xPos(i)}" cy="${yPos(vals[i])}" r="12" fill="transparent" data-weekid="${wk.id}" style="cursor:pointer;"/>`;
+  }).join('');
+
+  container.innerHTML = `
+    <svg viewBox="0 0 ${w} ${h}" class="chart-svg">
+      ${gridLines}
+      <polygon points="${areaPts}" fill="#5C8A00" opacity="0.12"/>
+      <polyline points="${pts}" fill="none" stroke="#5C8A00" stroke-width="2.5"/>
+      ${dots}
+      ${xLabels}
+    </svg>
+  `;
+  container.querySelectorAll('circle[data-weekid]').forEach(c=>{
+    c.addEventListener('click', ()=>{
+      selectedTrendWeekId = c.dataset.weekid;
+      renderTrendChart();
+      renderWeekDetail();
+    });
+  });
+}
+
+// ---------- weekly ----------
+function shoeOptions(selected){
+  let opts = `<option value="" ${selected===''?'selected':''}>—</option>`;
+  shoes.forEach(s=>{
+    opts += `<option value="${s.id}" ${selected===s.id?'selected':''}>${s.name}</option>`;
+  });
+  return opts;
+}
+
+function renderWeekly(){
+  const list = document.getElementById('weeklyList');
+  list.innerHTML = '';
+  const today = todayISO();
+  const all = [...weekly].sort((a,b)=> b.start.localeCompare(a.start));
+  const startedWeeks = all.filter(w => w.start <= today);
+  const sorted = startedWeeks.filter(w => !w.archived);
+  const archivedWeeks = startedWeeks.filter(w => w.archived);
+  const upcomingCount = all.length - startedWeeks.length;
+  if(upcomingCount > 0){
+    const note = document.createElement('div');
+    note.className = 'mo-note';
+    note.style.marginBottom = '10px';
+    note.textContent = `${upcomingCount} upcoming week${upcomingCount===1?'':'s'} planned — see the Planning tab. They'll appear here once each one starts.`;
+    list.appendChild(note);
+  }
+  sorted.forEach((w) => {
+    const total = weekTotal(w);
+    const end = isoAddDays(w.start, w.days.length-1);
+
+    const card = document.createElement('div');
+    card.className = 'week-card';
+    card.innerHTML = `
+      <div class="start-edit">
+        <label>Week start</label>
+        <input type="date" value="${w.start}" data-field="start">
+      </div>
+      <div class="week-top">
+        <div class="week-range">${fmtShort(w.start)}<span class="sep">–</span>${fmtShort(end)}</div>
+        <div class="week-totals">
+          <div class="mi">${fmtNum(total)} mi</div>
+          <div class="pace">${w.pace||'—'} avg /mi</div>
+        </div>
+      </div>
+      <div class="days-row">
+        ${w.days.map((day,i)=>{
+          const d = weekdayShort(isoAddDays(w.start, i));
+          const splits = day.splits || [];
+          const splitKey = `${w.id}-${i}`;
+          const isOpen = openSplitKeys.has(splitKey);
+          const badge = splits.length
+            ? `<span class="split-link" data-splittoggle="${i}">${splits.length+1} shoes ✎</span>`
+            : `<span class="split-link" data-splittoggle="${i}">+ split shoe</span>`;
+          let panel = '';
+          if(isOpen){
+            const splitTotal = splits.reduce((a,s)=>a+(Number(s.miles)||0),0);
+            const primaryMiles = (Number(day.miles)||0) - splitTotal;
+            panel = `
+              <div class="split-panel">
+                <div class="split-panel-title">${d} · day total ${fmtNum(Number(day.miles)||0)} mi</div>
+                <div class="split-row">
+                  <div class="mono" style="text-align:center;color:var(--muted);font-size:11px;">${fmtNum(primaryMiles)}</div>
+                  <select data-splitday="${i}" data-splitfield="primaryShoe">${shoeOptions(day.shoe)}</select>
+                  <span></span>
+                </div>
+                ${splits.map((s,si)=>`
+                  <div class="split-row">
+                    <input type="number" step="0.1" value="${blankZero(s.miles)}" data-splitday="${i}" data-splitidx="${si}" data-splitfield="miles">
+                    <select data-splitday="${i}" data-splitidx="${si}" data-splitfield="shoe">${shoeOptions(s.shoe)}</select>
+                    <span class="split-del" data-splitday="${i}" data-splitidx="${si}">✕</span>
+                  </div>`).join('')}
+                <div class="split-add" data-splitadd="${i}">+ Add another shoe</div>
+                <div class="split-note">Top row is the primary shoe (remaining miles after splits). Each row below is a separate pair used that day.</div>
+                <div class="split-close" data-splitclose="${i}">Done</div>
+              </div>`;
+          }
+          return `
+          <div class="day-cell">
+            <div class="dlabel">${d}</div>
+            <input type="number" step="0.1" value="${blankZero(day.miles)}" data-day="${i}" data-sub="miles">
+            <select data-day="${i}" data-sub="shoe">${shoeOptions(day.shoe)}</select>
+            ${badge}
+          </div>${panel}`;
+        }).join('')}
+      </div>
+      <div class="week-extra">
+        <div class="field"><label>Elevation ft</label><input type="number" data-field="elev" value="${blankZero(w.elev)}"></div>
+        <div class="field"><label>Total time (H:MM)</label><input type="text" placeholder="3:45" data-field="totalTime" value="${w.totalTime||''}"></div>
+        <div class="field"><label>Avg pace (m:ss)</label><input type="text" placeholder="8:45" data-field="pace" value="${w.pace}"></div>
+      </div>
+      <div class="row-actions" style="display:flex;gap:14px;justify-content:flex-end;">
+        <span class="ghost-btn" data-archive="${w.id}">Archive week</span>
+        <span class="ghost-btn" data-del="${w.id}">Delete week</span>
+      </div>
+    `;
+
+    // Week start date — only rerender on commit (change), not every keystroke
+    card.querySelector('[data-field="start"]').addEventListener('change', e=>{
+      w.start = e.target.value; renderWeekly(); renderHero(); renderMonthly(); renderPlanning(); saveAll();
+    });
+
+    // Daily miles — lightweight update, no full rerender (keeps focus while typing)
+    card.querySelectorAll('[data-day][data-sub="miles"]').forEach(el=>{
+      el.addEventListener('input', e=>{
+        const i = Number(e.target.dataset.day);
+        w.days[i].miles = e.target.value;
+        card.querySelector('.week-totals .mi').textContent = `${fmtNum(weekTotal(w))} mi`;
+        renderHero(); renderShoes(); renderMonthly(); renderPlanning(); saveAll();
+      });
+    });
+    // Primary shoe per day — discrete action, full rerender is fine
+    card.querySelectorAll('[data-day][data-sub="shoe"]').forEach(el=>{
+      el.addEventListener('change', e=>{
+        const i = Number(e.target.dataset.day);
+        w.days[i].shoe = e.target.value;
+        renderWeekly(); renderHero(); renderShoes(); renderMonthly(); renderPlanning(); saveAll();
+      });
+    });
+    // Split panel toggles
+    card.querySelectorAll('[data-splittoggle]').forEach(el=>{
+      el.addEventListener('click', ()=>{
+        const i = el.dataset.splittoggle;
+        const key = `${w.id}-${i}`;
+        if(openSplitKeys.has(key)) openSplitKeys.delete(key); else openSplitKeys.add(key);
+        renderWeekly();
+      });
+    });
+    card.querySelectorAll('[data-splitclose]').forEach(el=>{
+      el.addEventListener('click', ()=>{
+        openSplitKeys.delete(`${w.id}-${el.dataset.splitclose}`);
+        renderWeekly();
+      });
+    });
+    // Split add
+    card.querySelectorAll('[data-splitadd]').forEach(el=>{
+      el.addEventListener('click', ()=>{
+        const i = Number(el.dataset.splitadd);
+        if(!w.days[i].splits) w.days[i].splits = [];
+        w.days[i].splits.push({miles:0, shoe:''});
+        renderWeekly(); saveAll();
+      });
+    });
+    // Split delete
+    card.querySelectorAll('.split-del[data-splitidx]').forEach(el=>{
+      el.addEventListener('click', ()=>{
+        const i = Number(el.dataset.splitday), si = Number(el.dataset.splitidx);
+        w.days[i].splits.splice(si,1);
+        renderWeekly(); renderHero(); renderShoes(); renderMonthly(); renderPlanning(); saveAll();
+      });
+    });
+    // Split miles — lightweight update
+    card.querySelectorAll('input[data-splitfield="miles"]').forEach(el=>{
+      el.addEventListener('input', e=>{
+        const i = Number(e.target.dataset.splitday), si = Number(e.target.dataset.splitidx);
+        w.days[i].splits[si].miles = e.target.value;
+        const panelTitle = e.target.closest('.split-panel');
+        if(panelTitle){
+          const day = w.days[i];
+          const splitTotal = day.splits.reduce((a,s)=>a+(Number(s.miles)||0),0);
+          const primaryMiles = (Number(day.miles)||0) - splitTotal;
+          panelTitle.querySelector('.split-row .mono').textContent = fmtNum(primaryMiles);
+        }
+        renderShoes(); saveAll();
+      });
+    });
+    // Split shoe select
+    card.querySelectorAll('select[data-splitfield="shoe"]').forEach(el=>{
+      el.addEventListener('change', e=>{
+        const i = Number(e.target.dataset.splitday), si = Number(e.target.dataset.splitidx);
+        w.days[i].splits[si].shoe = e.target.value;
+        renderShoes(); saveAll();
+      });
+    });
+    // Primary shoe select (within split panel)
+    card.querySelectorAll('select[data-splitfield="primaryShoe"]').forEach(el=>{
+      el.addEventListener('change', e=>{
+        const i = Number(e.target.dataset.splitday);
+        w.days[i].shoe = e.target.value;
+        renderWeekly(); renderShoes(); saveAll();
+      });
+    });
+
+    ['elev','pace','totalTime'].forEach(f=>{
+      card.querySelector(`[data-field="${f}"]`).addEventListener('input', e=>{
+        w[f]=e.target.value; renderHero(); saveAll();
+      });
+    });
+    card.querySelector('[data-archive]').addEventListener('click', ()=>{
+      w.archived = true;
+      renderWeekly(); saveAll();
+    });
+    card.querySelector('[data-del]').addEventListener('click', ()=>{
+      weekly = weekly.filter(x=>x.id!==w.id);
+      renderWeekly(); renderHero(); renderShoes(); renderMonthly(); renderPlanning(); saveAll();
+    });
+    list.appendChild(card);
+  });
+
+  const toggle = document.getElementById('archivedWeeksToggle');
+  const archivedList = document.getElementById('archivedWeeksList');
+  if(toggle && archivedList){
+    if(!archivedWeeks.length){
+      toggle.textContent = '';
+      archivedList.innerHTML = '';
+    } else {
+      toggle.textContent = showArchivedWeeks
+        ? `Hide archived weeks (${archivedWeeks.length})`
+        : `Show archived weeks (${archivedWeeks.length})`;
+      toggle.onclick = ()=>{ showArchivedWeeks = !showArchivedWeeks; renderWeekly(); };
+      archivedList.innerHTML = '';
+      if(showArchivedWeeks){
+        archivedWeeks.sort((a,b)=> b.start.localeCompare(a.start)).forEach(w=>{
+          const total = weekTotal(w);
+          const end = isoAddDays(w.start, w.days.length-1);
+          const card = document.createElement('div');
+          card.className = 'week-card retired-card';
+          card.innerHTML = `
+            <div class="week-top">
+              <div class="week-range">${fmtShort(w.start)}<span class="sep">–</span>${fmtShort(end)}</div>
+              <div class="week-totals"><div class="mi">${fmtNum(total)} mi</div></div>
+            </div>
+            <div class="retired-actions">
+              <span class="ghost-btn" data-unarchive="${w.id}">Un-archive</span>
+              <span class="ghost-btn" data-del="${w.id}">Delete permanently</span>
+            </div>
+          `;
+          card.querySelector('[data-unarchive]').addEventListener('click', ()=>{
+            w.archived = false;
+            renderWeekly(); saveAll();
+          });
+          card.querySelector('[data-del]').addEventListener('click', ()=>{
+            weekly = weekly.filter(x=>x.id!==w.id);
+            renderWeekly(); renderHero(); renderShoes(); renderMonthly(); renderPlanning(); saveAll();
+          });
+          archivedList.appendChild(card);
+        });
+      }
+    }
+  }
+}
+
+// ---------- planning ----------
+function mondayOnOrBefore(dateISO){
+  const [y,m,d] = dateISO.split('-').map(Number);
+  const dt = new Date(Date.UTC(y,m-1,d));
+  const dow = dt.getUTCDay(); // 0=Sun,1=Mon,...6=Sat
+  const diff = (dow===0) ? 6 : dow-1; // days since Monday
+  dt.setUTCDate(dt.getUTCDate()-diff);
+  return dt.toISOString().slice(0,10);
+}
+function ensureWeek(startISO){
+  let w = weekly.find(x=>x.start===startISO);
+  if(!w){
+    w = {id:newId(), start:startISO, days:[0,0,0,0,0,0,0].map(()=>({miles:0,shoe:'',splits:[]})), elev:0, totalTime:'', pace:''};
+    weekly.push(w);
+  }
+  return w;
+}
+function renderPlanning(){
+  const input = document.getElementById('planWeeksInput');
+  if(input) planWeeksAhead = Math.max(1, Math.min(60, Number(input.value)||8));
+
+  const today = todayISO();
+  const curWeekStart = mondayOnOrBefore(today);
+  const rows = [];
+  for(let i=0; i<planWeeksAhead; i++){
+    const start = isoAddDays(curWeekStart, i*7);
+    rows.push(ensureWeek(start));
+  }
+
+  const body = document.getElementById('planBody');
+  body.innerHTML = '';
+  rows.forEach(w=>{
+    const isCurrent = w.start === curWeekStart;
+    const tr = document.createElement('tr');
+    if(isCurrent) tr.className = 'current-week';
+    tr.innerHTML = `
+      <td>${fmtShort(w.start)}</td>
+      ${DAYS.map((d,i)=>`<td><input type="number" step="0.1" value="${blankZero(w.days[i].miles)}" data-planweek="${w.id}" data-planday="${i}"></td>`).join('')}
+      <td class="mono">${fmtNum(rawWeekTotal(w))}</td>
+    `;
+    tr.querySelectorAll('input[data-planday]').forEach(inp=>{
+      inp.addEventListener('input', e=>{
+        const wk = weekly.find(x=>x.id===e.target.dataset.planweek);
+        const i = Number(e.target.dataset.planday);
+        wk.days[i].miles = e.target.value;
+        tr.querySelector('td:last-child').textContent = fmtNum(rawWeekTotal(wk));
+        renderWeekly(); renderHero(); renderShoes(); renderMonthly(); saveAll();
+      });
+    });
+    body.appendChild(tr);
+  });
+}
+
+// ---------- calendar ----------
+function dayIndexOf(dateISO){
+  const [y,m,d] = dateISO.split('-').map(Number);
+  const dt = new Date(Date.UTC(y,m-1,d));
+  const dow = dt.getUTCDay(); // 0=Sun..6=Sat
+  return (dow===0) ? 6 : dow-1; // Monday-start index
+}
+function lookupDay(dateISO){
+  // read-only: returns the day object if a week already exists for this date, else null
+  const weekStart = mondayOnOrBefore(dateISO);
+  const w = weekly.find(x=>x.start===weekStart);
+  if(!w) return null;
+  const idx = dayIndexOf(dateISO);
+  return w.days[idx] || null;
+}
+function ensureDayRef(dateISO){
+  // creates the week if needed (used only when the user actually edits a day)
+  const weekStart = mondayOnOrBefore(dateISO);
+  const w = ensureWeek(weekStart);
+  const idx = dayIndexOf(dateISO);
+  return {week:w, idx, day:w.days[idx]};
+}
+function renderCalendar(){
+  const titleDt = new Date(Date.UTC(calendarYear, calendarMonth, 1));
+  document.getElementById('calMonthTitle').textContent =
+    titleDt.toLocaleDateString('en-GB', {month:'long', year:'numeric', timeZone:'UTC'});
+
+  document.getElementById('calLegend').innerHTML = Object.keys(TAG_COLORS).map(tag=>
+    `<span class="cal-legend-item"><span class="dot" style="background:${TAG_COLORS[tag]}"></span>${TAG_LABELS[tag]}</span>`
+  ).join('');
+
+  const today = todayISO();
+  const firstWeekday = new Date(Date.UTC(calendarYear, calendarMonth, 1)).getUTCDay();
+  const leadBlank = (firstWeekday===0) ? 6 : firstWeekday-1;
+  const daysInThisMonth = new Date(Date.UTC(calendarYear, calendarMonth+1, 0)).getUTCDate();
+
+  const cells = [];
+  for(let i=0;i<leadBlank;i++) cells.push(null);
+  for(let d=1; d<=daysInThisMonth; d++){
+    cells.push(`${calendarYear}-${String(calendarMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`);
+  }
+  while(cells.length % 7 !== 0) cells.push(null);
+
+  const grid = document.getElementById('calGrid');
+  grid.innerHTML = '';
+  ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].forEach(d=>{
+    const el = document.createElement('div');
+    el.className = 'cal-dow';
+    el.textContent = d;
+    grid.appendChild(el);
+  });
+  cells.forEach(dateISO=>{
+    const cell = document.createElement('div');
+    if(!dateISO){
+      cell.className = 'cal-cell blank';
+      grid.appendChild(cell);
+      return;
+    }
+    const day = lookupDay(dateISO);
+    const miles = day ? (Number(day.miles)||0) : 0;
+    const tag = day ? day.tag : '';
+    const isFuture = dateISO > today;
+    let classes = 'cal-cell' + (dateISO===today ? ' today' : '') + (isFuture ? ' future' : '') + (dateISO===selectedCalendarDate ? ' selected' : '');
+    cell.className = classes;
+    if(tag && TAG_COLORS[tag]){
+      cell.style.background = TAG_COLORS[tag] + '2E'; // soft tint
+    }
+    const dayNum = Number(dateISO.slice(8,10));
+    cell.innerHTML = `<div class="cal-daynum">${dayNum}</div><div class="cal-miles">${miles>0?fmtNum(miles):''}</div>`;
+    cell.addEventListener('click', ()=>{
+      selectedCalendarDate = dateISO;
+      renderCalendar();
+    });
+    grid.appendChild(cell);
+  });
+
+  // -- Tag tally for this month --
+  const tally = {};
+  Object.keys(TAG_COLORS).forEach(t=> tally[t]=0);
+  for(let d=1; d<=daysInThisMonth; d++){
+    const dateISO = `${calendarYear}-${String(calendarMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const day = lookupDay(dateISO);
+    if(day && day.tag && tally.hasOwnProperty(day.tag)) tally[day.tag]++;
+  }
+  const tallyEl = document.getElementById('calTally');
+  if(tallyEl){
+    tallyEl.innerHTML = Object.keys(TAG_COLORS).map(t=>
+      `<div class="stat"><div class="num" style="color:${TAG_COLORS[t]};font-size:20px;">${tally[t]}</div><div class="lbl">${TAG_LABELS[t]}</div></div>`
+    ).join('');
+  }
+
+  renderCalDayEditor();
+}
+function renderCalDayEditor(){
+  const wrap = document.getElementById('calDayEditor');
+  if(!selectedCalendarDate){
+    wrap.innerHTML = `<div class="dash-empty">Tap a day above to log miles or tag a run type.</div>`;
+    return;
+  }
+  const dateISO = selectedCalendarDate;
+  const day = lookupDay(dateISO);
+  const miles = day ? (day.miles===0?'':day.miles) : '';
+  const tag = day ? day.tag : '';
+  const label = new Date(dateISO+'T00:00:00Z').toLocaleDateString('en-GB', {weekday:'long', day:'numeric', month:'long', timeZone:'UTC'});
+
+  wrap.innerHTML = `
+    <div class="cal-day-editor">
+      <div class="cal-day-editor-title">${label}</div>
+      <div class="field"><label>Miles</label><input type="number" step="0.1" id="calMilesInput" value="${miles}"></div>
+      <div class="cal-tag-row">
+        ${Object.keys(TAG_COLORS).map(t=>
+          `<span class="cal-tag-btn ${tag===t?'active':''}" style="background:${TAG_COLORS[t]}" data-tag="${t}">${TAG_LABELS[t]}</span>`
+        ).join('')}
+        <span class="cal-tag-btn clear" data-tag="">Clear</span>
+      </div>
+    </div>
+  `;
+  document.getElementById('calMilesInput').addEventListener('change', e=>{
+    const ref = ensureDayRef(dateISO);
+    ref.day.miles = e.target.value;
+    renderCalendar(); renderWeekly(); renderHero(); renderShoes(); renderMonthly(); renderPlanning(); saveAll();
+  });
+  wrap.querySelectorAll('.cal-tag-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const ref = ensureDayRef(dateISO);
+      ref.day.tag = btn.dataset.tag;
+      renderCalendar(); saveAll();
+    });
+  });
+}
+
+// ---------- monthly (derived from Weekly daily log, per-year filter) ----------
+const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function monthKeyOf(dateISO){ return dateISO.slice(0,7); }
+function keyFor(year, monthIdx){ return `${year}-${String(monthIdx+1).padStart(2,'0')}`; }
+function aggregateMonthly(){
+  const map = {};
+  const today = todayISO();
+  weekly.forEach(w=>{
+    w.days.forEach((d,i)=>{
+      const dateISO = isoAddDays(w.start, i);
+      const key = monthKeyOf(dateISO);
+      if(!map[key]) map[key] = {miles:0, runs:0, off:0};
+      if(dateISO > today) return; // forward-planned entries don't count until that day arrives
+      const miles = Number(d.miles)||0;
+      map[key].miles += miles;
+      if(miles>0){ map[key].runs += 1; } else { map[key].off += 1; }
+    });
+  });
+  return map;
+}
+function getAllYears(){
+  const s = new Set([2024,2025,2026, new Date().getFullYear()]);
+  weekly.forEach(w=> s.add(Number(w.start.slice(0,4))));
+  monthly.forEach(m=> s.add(Number(m.key.slice(0,4))));
+  yearMeta.forEach(y=> s.add(Number(y.year)));
+  return Array.from(s).sort((a,b)=>a-b);
+}
+function daysInMonth(year, monthIdx){ return new Date(year, monthIdx+1, 0).getDate(); }
+function ensureYearMeta(year){
+  let y = yearMeta.find(x=>Number(x.year)===Number(year));
+  if(!y){ y = {id:newId(), year, untracked:0}; yearMeta.push(y); }
+  return y;
+}
+function ensureMonthEntry(key){
+  let m = monthly.find(x=>x.key===key);
+  if(!m){ m = {id:newId(), key, elev:0, manualMiles:'', manualRuns:'', manualOff:''}; monthly.push(m); }
+  return m;
+}
+
+function renderYearChips(){
+  const years = getAllYears();
+  const wrap = document.getElementById('yearChips');
+  wrap.innerHTML = years.map(y=>
+    `<div class="year-chip ${y===selectedMonthlyYear?'active':''}" data-year="${y}">${y}</div>`
+  ).join('');
+  wrap.querySelectorAll('.year-chip').forEach(chip=>{
+    chip.addEventListener('click', ()=>{
+      selectedMonthlyYear = Number(chip.dataset.year);
+      renderMonthly();
+    });
+  });
+}
+
+function renderMonthly(){
+  renderYearChips();
+  const year = selectedMonthlyYear;
+  const agg = aggregateMonthly();
+  const meta = ensureYearMeta(year);
+
+  document.getElementById('yearAdjWrap').innerHTML = `
+    <div class="yl">Untracked miles for ${year}<br>(runs not entered day-by-day)</div>
+    <input type="number" step="0.1" id="untrackedInput" value="${meta.untracked}">
+  `;
+  document.getElementById('untrackedInput').addEventListener('change', e=>{
+    meta.untracked = e.target.value; renderMonthly(); saveAll();
+  });
+
+  const body = document.getElementById('monthBody');
+  body.innerHTML = '';
+  let totals = {miles:0, runs:0, off:0, days:0, elev:0};
+
+  MONTH_NAMES.forEach((label, i)=>{
+    const key = keyFor(year, i);
+    const a = agg[key] || {miles:0, runs:0, off:0};
+    const hasWeekly = (a.runs + a.off) > 0;
+    const existing = monthly.find(x=>x.key===key);
+    const elev = existing ? existing.elev : 0;
+
+    let miles, runs, off, runsKnown, offKnown, milesCell, runsCell, offCell;
+    if(hasWeekly){
+      miles = a.miles; runs = a.runs; off = a.off; runsKnown = true; offKnown = true;
+      milesCell = `<td class="mono">${fmtNum(miles)}</td>`;
+      runsCell = `<td class="mono">${runs}</td>`;
+      offCell = `<td class="mono">${off}</td>`;
+    } else {
+      const rawRuns = existing ? existing.manualRuns : '';
+      const rawOff = existing ? existing.manualOff : '';
+      miles = existing ? (Number(existing.manualMiles)||0) : 0;
+      runsKnown = rawRuns !== '' && rawRuns !== null && rawRuns !== undefined;
+      offKnown = rawOff !== '' && rawOff !== null && rawOff !== undefined;
+      runs = runsKnown ? (Number(rawRuns)||0) : 0;
+      off = offKnown ? (Number(rawOff)||0) : 0;
+      milesCell = `<td class="manual-cell"><input type="number" step="0.1" value="${existing?blankZero(existing.manualMiles):''}" data-field="manualMiles"></td>`;
+      runsCell = `<td class="manual-cell"><input type="number" step="1" value="${blankZero(rawRuns)}" data-field="manualRuns" placeholder="?"></td>`;
+      offCell = `<td class="manual-cell"><input type="number" step="1" value="${blankZero(rawOff)}" data-field="manualOff" placeholder="?"></td>`;
+    }
+    const days = (runsKnown && offKnown) ? (runs + off) : daysInMonth(year, i);
+    const mpr = runsKnown ? (runs ? (miles/runs) : 0) : null;
+    const mpd = days ? (miles/days) : 0;
+    totals.miles += miles; totals.runs += runsKnown ? runs : 0; totals.off += offKnown ? off : 0;
+    totals.days += days; totals.elev += Number(elev)||0;
+
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${label}${hasWeekly?'':' <span style="color:var(--amber);font-size:9px;">✎</span>'}</td>
+      ${milesCell}${runsCell}${offCell}
+      <td class="mono">${days}</td>
+      <td class="mono">${mpr===null?'–':fmtNum(mpr,1)}</td>
+      <td class="mono">${fmtNum(mpd,1)}</td>
+      <td><input type="number" step="1" value="${blankZero(elev)}" data-field="elev"></td>
+    `;
+    if(!hasWeekly){
+      tr.querySelectorAll('[data-field="manualMiles"],[data-field="manualRuns"],[data-field="manualOff"]').forEach(inp=>{
+        inp.addEventListener('change', e=>{
+          const m = ensureMonthEntry(key);
+          m[e.target.dataset.field] = e.target.value;
+          renderMonthly(); saveAll();
+        });
+      });
+    }
+    tr.querySelector('[data-field="elev"]').addEventListener('change', e=>{
+      const m = ensureMonthEntry(key);
+      m.elev = e.target.value;
+      renderMonthly(); saveAll();
+    });
+    body.appendChild(tr);
+  });
+
+  const untracked = Number(meta.untracked)||0;
+  const milesWithAdj = totals.miles + untracked;
+  const mprTot = totals.runs ? (milesWithAdj/totals.runs) : null;
+  const mpdTot = totals.days ? (milesWithAdj/totals.days) : 0;
+  const totRow = document.createElement('tr');
+  totRow.className = 'totals';
+  totRow.innerHTML = `<td>Totals</td><td>${fmtNum(milesWithAdj)}</td><td>${totals.runs}</td><td>${totals.off}</td><td>${totals.days}</td><td>${mprTot===null?'–':fmtNum(mprTot,1)}</td><td>${fmtNum(mpdTot,1)}</td><td>${fmtNum(totals.elev,0)}</td>`;
+  body.appendChild(totRow);
+
+  const runRate = totals.days ? (totals.runs/totals.days*100) : 0;
+  const now = new Date();
+  const curYear = now.getFullYear(), curMonth = now.getMonth()+1;
+  const monthsElapsed = (Number(year) < curYear) ? 12 : (Number(year) === curYear ? curMonth : 0);
+  const avgMonth = monthsElapsed ? (milesWithAdj/monthsElapsed) : 0;
+  document.getElementById('moNote').innerHTML =
+    `Avg ${fmtNum(avgMonth,1)} mi/month (over ${monthsElapsed||12} elapsed month${monthsElapsed===1?'':'s'}) · Run rate ${fmtNum(runRate,1)}% · MPR = mi÷runs · MPD = mi÷days · ✎ = manually entered month · – = runs not tracked that month`;
+
+  renderYoYChart(agg);
+  renderMonthPivot(agg);
+}
+
+// ---------- year on year chart ----------
+function getMonthMiles(year, i, agg){
+  const key = keyFor(year, i);
+  const a = agg[key];
+  if(a && (a.runs + a.off) > 0) return {miles:a.miles, hasData:true};
+  const existing = monthly.find(m=>m.key===key);
+  if(existing && existing.manualMiles !== '' && existing.manualMiles !== null && existing.manualMiles !== undefined){
+    return {miles:Number(existing.manualMiles)||0, hasData:true};
+  }
+  return {miles:0, hasData:false};
+}
+function renderMonthPivot(agg){
+  const years = getAllYears();
+  const headRow = document.getElementById('pivotHeadRow');
+  const body = document.getElementById('pivotBody');
+  if(!headRow || !body) return;
+
+  headRow.innerHTML = `<th>Month</th>${years.map(y=>`<th>${y}</th>`).join('')}<th>Total</th>`;
+
+  body.innerHTML = '';
+  const yearTotals = years.map(()=>0);
+  MONTH_NAMES.forEach((label, i)=>{
+    let rowTotal = 0;
+    const cells = years.map((y, yi)=>{
+      const d = getMonthMiles(y, i, agg);
+      if(d.hasData){ rowTotal += d.miles; yearTotals[yi] += d.miles; }
+      return `<td class="mono">${d.hasData ? fmtNum(d.miles,0) : '–'}</td>`;
+    }).join('');
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${label}</td>${cells}<td class="mono">${fmtNum(rowTotal,0)}</td>`;
+    body.appendChild(tr);
+  });
+
+  const grandTotal = yearTotals.reduce((a,b)=>a+b,0);
+  const totRow = document.createElement('tr');
+  totRow.className = 'totals';
+  totRow.innerHTML = `<td>Total</td>${yearTotals.map(t=>`<td class="mono">${fmtNum(t,0)}</td>`).join('')}<td class="mono">${fmtNum(grandTotal,0)}</td>`;
+  body.appendChild(totRow);
+
+  const now = new Date();
+  const curYear = now.getFullYear(), curMonth = now.getMonth()+1;
+  const avgRow = document.createElement('tr');
+  avgRow.innerHTML = `<td>Average</td>${years.map((y,yi)=>{
+    const monthsElapsed = (y<curYear) ? 12 : (y===curYear ? curMonth : 0);
+    const avg = monthsElapsed ? (yearTotals[yi]/monthsElapsed) : 0;
+    return `<td class="mono">${monthsElapsed ? fmtNum(avg,0) : '–'}</td>`;
+  }).join('')}<td></td>`;
+  body.appendChild(avgRow);
+}
+const YEAR_PALETTE = ['#6B7280','#2F7DE1','#8B5FBF','#B4690E','#DC3545','#0E9C88','#5C8A00','#C9499E','#3EA35E'];
+function renderYoYChart(agg){
+  const years = getAllYears().slice(-4);
+  const w = 640, h = 280, padL = 32, padR = 10, padT = 12, padB = 22;
+  const plotW = w - padL - padR, plotH = h - padT - padB;
+  const seriesData = years.map(y => MONTH_NAMES.map((_, i) => getMonthMiles(y, i, agg)));
+  const maxVal = Math.max(20, ...seriesData.flat().map(d => d.miles));
+  const xPos = i => padL + (i/11) * plotW;
+  const yPos = v => padT + plotH - (v/maxVal) * plotH;
+
+  let gridLines = '';
+  const ticks = 4;
+  for(let t=0; t<=ticks; t++){
+    const v = maxVal/ticks*t;
+    const y = yPos(v);
+    gridLines += `<line x1="${padL}" y1="${y}" x2="${w-padR}" y2="${y}" stroke="#E1E4E9" stroke-width="1"/>`;
+    gridLines += `<text x="${padL-5}" y="${y+3}" text-anchor="end" font-size="9" fill="#6B7280" font-family="IBM Plex Mono">${Math.round(v)}</text>`;
+  }
+  const xLabels = MONTH_NAMES.map((m,i)=>
+    `<text x="${xPos(i)}" y="${h-6}" text-anchor="middle" font-size="9" fill="#6B7280" font-family="IBM Plex Mono">${m}</text>`
+  ).join('');
+
+  let lines = '';
+  years.forEach((y, yi) => {
+    const color = YEAR_PALETTE[yi % YEAR_PALETTE.length];
+    const dimmed = (y !== selectedMonthlyYear);
+    const segs = [];
+    let cur = [];
+    seriesData[yi].forEach((d,i)=>{
+      if(d.hasData){ cur.push(`${xPos(i)},${yPos(d.miles)}`); }
+      else if(cur.length){ segs.push(cur); cur=[]; }
+    });
+    if(cur.length) segs.push(cur);
+    segs.forEach(seg=>{
+      lines += `<polyline points="${seg.join(' ')}" fill="none" stroke="${color}" stroke-width="${dimmed?1.5:2.5}" opacity="${dimmed?0.35:1}"/>`;
+    });
+    seriesData[yi].forEach((d,i)=>{
+      if(d.hasData) lines += `<circle cx="${xPos(i)}" cy="${yPos(d.miles)}" r="${dimmed?2:2.8}" fill="${color}" opacity="${dimmed?0.5:1}"/>`;
+    });
+  });
+
+  const legend = years.map((y,yi)=>
+    `<span class="legend-item ${y===selectedMonthlyYear?'active':''}" data-year="${y}"><span class="dot" style="background:${YEAR_PALETTE[yi%YEAR_PALETTE.length]}"></span>${y}</span>`
+  ).join('');
+
+  const container = document.getElementById('yoyChart');
+  container.innerHTML = `
+    <svg viewBox="0 0 ${w} ${h}" class="chart-svg">${gridLines}${xLabels}${lines}</svg>
+    <div class="chart-legend">${legend}</div>
+  `;
+  container.querySelectorAll('.legend-item').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      selectedMonthlyYear = Number(el.dataset.year);
+      renderMonthly();
+    });
+  });
+}
+
+// ---------- shoes ----------
+function moveShoe(id, dir){
+  const activeIds = shoes.filter(s=>!s.retired).map(s=>s.id);
+  const idx = activeIds.indexOf(id);
+  const newIdx = idx + dir;
+  if(newIdx < 0 || newIdx >= activeIds.length) return;
+  const i1 = shoes.findIndex(s=>s.id===activeIds[idx]);
+  const i2 = shoes.findIndex(s=>s.id===activeIds[newIdx]);
+  [shoes[i1], shoes[i2]] = [shoes[i2], shoes[i1]];
+}
+function renderShoes(){
+  const list = document.getElementById('shoesList');
+  list.innerHTML = '';
+  const activeShoes = shoes.filter(s=>!s.retired);
+  const retiredShoes = shoes.filter(s=>s.retired);
+
+  activeShoes.forEach((s,idx)=>{
+    const cur = shoeMileage(s.id);
+    const total = (Number(s.pre)||0)+cur;
+    const price = Number(s.price)||0;
+    const ppm = total ? (price/total) : 0;
+    const retireAt = Number(s.retireAt)||400;
+    const pct = Math.min(100, total/retireAt*100);
+    let color = 'var(--hivis)';
+    if(pct>85) color='var(--danger)'; else if(pct>60) color='var(--amber)';
+
+    const card = document.createElement('div');
+    card.className='shoe-card';
+    card.innerHTML = `
+      <div class="shoe-top">
+        <div class="reorder-btns">
+          <span data-move="-1" class="${idx===0?'disabled':''}">▲</span>
+          <span data-move="1" class="${idx===activeShoes.length-1?'disabled':''}">▼</span>
+        </div>
+        <div class="shoe-top-left"><input class="shoe-name" value="${s.name}" data-field="name"></div>
+        <div class="shoe-total mono">${fmtNum(total)} mi</div>
+      </div>
+      <div class="wear-bar"><div class="wear-fill" style="width:${pct}%;background:${color}"></div></div>
+      <div class="shoe-fields">
+        <div class="field"><label>Pre-2026 mi</label><input type="number" step="0.1" value="${blankZero(s.pre)}" data-field="pre"></div>
+        <div class="field"><label>2026 mi (auto)</label><input type="text" value="${fmtNum(cur)}" disabled></div>
+        <div class="field"><label>Price £</label><input type="number" step="0.01" value="${blankZero(s.price)}" data-field="price"></div>
+      </div>
+      <div class="shoe-fields second">
+        <div class="field"><label>Bought</label><input type="date" value="${s.bought}" data-field="bought"></div>
+        <div class="field"><label>£ / mile</label><input type="text" value="${fmtNum(ppm,2)}" disabled></div>
+        <div class="field"><label>Retire at (mi)</label><input type="number" step="10" value="${retireAt}" data-field="retireAt"></div>
+      </div>
+      <div class="row-actions" style="display:flex;gap:14px;justify-content:flex-end;">
+        <span class="ghost-btn" data-retire="${s.id}">Retire shoe</span>
+        <span class="ghost-btn" data-del="${s.id}">Delete shoe</span>
+      </div>
+    `;
+    card.querySelectorAll('input[data-field]').forEach(inp=>{
+      inp.addEventListener('change', e=>{
+        s[e.target.dataset.field]=e.target.value;
+        renderShoes(); saveAll();
+      });
+    });
+    card.querySelectorAll('[data-move]').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        moveShoe(s.id, Number(btn.dataset.move));
+        renderShoes(); saveAll();
+      });
+    });
+    card.querySelector('[data-retire]').addEventListener('click', ()=>{
+      s.retired = true;
+      renderShoes(); saveAll();
+    });
+    card.querySelector('[data-del]').addEventListener('click', ()=>{
+      shoes = shoes.filter(x=>x.id!==s.id);
+      // clear references in weekly logs
+      weekly.forEach(w=>w.days.forEach(d=>{ if(d.shoe===s.id) d.shoe=''; }));
+      renderShoes(); renderWeekly(); saveAll();
+    });
+    list.appendChild(card);
+  });
+
+  const toggle = document.getElementById('retiredToggle');
+  const retiredList = document.getElementById('retiredList');
+  if(!retiredShoes.length){
+    toggle.textContent = '';
+    retiredList.innerHTML = '';
+    return;
+  }
+  toggle.textContent = showRetiredShoes
+    ? `Hide retired shoes (${retiredShoes.length})`
+    : `Show retired shoes (${retiredShoes.length})`;
+  toggle.onclick = ()=>{ showRetiredShoes = !showRetiredShoes; renderShoes(); };
+
+  retiredList.innerHTML = '';
+  if(showRetiredShoes){
+    retiredShoes.forEach(s=>{
+      const cur = shoeMileage(s.id);
+      const total = (Number(s.pre)||0)+cur;
+      const card = document.createElement('div');
+      card.className = 'shoe-card retired-card';
+      card.innerHTML = `
+        <div class="shoe-top">
+          <div class="shoe-top-left"><span class="shoe-name" style="font-size:19px;">${s.name}</span></div>
+          <div class="shoe-total mono">${fmtNum(total)} mi</div>
+        </div>
+        <div class="retired-actions">
+          <span class="ghost-btn" data-unretire="${s.id}">Un-retire</span>
+          <span class="ghost-btn" data-del="${s.id}">Delete permanently</span>
+        </div>
+      `;
+      card.querySelector('[data-unretire]').addEventListener('click', ()=>{
+        s.retired = false;
+        renderShoes(); saveAll();
+      });
+      card.querySelector('[data-del]').addEventListener('click', ()=>{
+        shoes = shoes.filter(x=>x.id!==s.id);
+        weekly.forEach(w=>w.days.forEach(d=>{ if(d.shoe===s.id) d.shoe=''; }));
+        renderShoes(); renderWeekly(); saveAll();
+      });
+      retiredList.appendChild(card);
+    });
+  }
+}
+
+
+// ---------- races ----------
+function fastestRaceByType(type){
+  let best = null, bestSec = null;
+  races.forEach(r=>{
+    if(r.type !== type) return;
+    const sec = timeToSec(r.time);
+    if(sec!=null && (bestSec===null || sec<bestSec)){ bestSec = sec; best = r; }
+  });
+  return best; // {time, dist, ...} or null
+}
+function renderRaces(){
+  const types = ['All', ...new Set(races.map(r=>r.type).filter(Boolean))].sort((a,b)=> a==='All'?-1:b==='All'?1:a.localeCompare(b));
+  const select = document.getElementById('raceTypeSelect');
+  select.innerHTML = types.map(t=>
+    `<option value="${t}" ${t===selectedRaceType?'selected':''}>${t==='All'?'All race types':t}</option>`
+  ).join('');
+  select.onchange = e=>{
+    selectedRaceType = e.target.value;
+    renderRaces();
+  };
+
+  const body = document.getElementById('raceBody');
+  body.innerHTML = '';
+  const filtered = selectedRaceType==='All' ? races : races.filter(r=>r.type===selectedRaceType);
+  filtered.forEach(r=>{
+    const sec = timeToSec(r.time);
+    const pace = (sec!=null && Number(r.dist)>0) ? secToPace(sec/Number(r.dist)) : '—';
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><input value="${r.type}" data-field="type" style="min-width:90px;"></td>
+      <td><input value="${r.race}" data-field="race" style="min-width:100px;"></td>
+      <td><input value="${r.date}" data-field="date" style="min-width:60px;" placeholder="Mon-YY"></td>
+      <td><input value="${r.time}" data-field="time" style="min-width:70px;" placeholder="h:mm:ss"></td>
+      <td><input type="number" step="0.01" value="${r.dist}" data-field="dist" style="min-width:50px;"></td>
+      <td class="mono">${pace}</td>
+      <td><input value="${r.pos}" data-field="pos" style="min-width:70px;"></td>
+      <td><input value="${r.note}" data-field="note" style="min-width:50px;"></td>
+      <td class="del" data-del="${r.id}">✕</td>
+    `;
+    tr.querySelectorAll('input').forEach(inp=>{
+      inp.addEventListener('change', e=>{
+        r[e.target.dataset.field]=e.target.value;
+        renderRaces(); saveAll();
+      });
+    });
+    tr.querySelector('[data-del]').addEventListener('click', ()=>{
+      races = races.filter(x=>x.id!==r.id);
+      renderRaces(); saveAll();
+    });
+    body.appendChild(tr);
+  });
+
+  const marathonRace = fastestRaceByType('Marathon');
+  const halfRace = fastestRaceByType('Half Marathon');
+  const tenMilerRace = fastestRaceByType('10 Miler');
+  const marathonPace = marathonRace && Number(marathonRace.dist)>0 ? secToPace(timeToSec(marathonRace.time)/Number(marathonRace.dist)) : null;
+  const halfPace = halfRace && Number(halfRace.dist)>0 ? secToPace(timeToSec(halfRace.time)/Number(halfRace.dist)) : null;
+  const tenMilerPace = tenMilerRace && Number(tenMilerRace.dist)>0 ? secToPace(timeToSec(tenMilerRace.time)/Number(tenMilerRace.dist)) : null;
+  const fiveKSec = timeToSec(manualPBs.fiveK);
+  const fiveKPace = fiveKSec!=null ? secToPace(fiveKSec/3.1) : null; // 5K assumed at standard 3.1 miles
+  document.getElementById('raceStats').innerHTML = `
+    <div class="hero-stats" style="grid-template-columns:repeat(2,1fr);margin-bottom:8px;">
+      <div class="stat"><div class="num">${races.length}</div><div class="lbl">Total Races</div></div>
+      <div class="stat"><div class="num">${fmtNum(races.reduce((a,r)=>a+(Number(r.dist)||0),0),0)}</div><div class="lbl">Total Miles</div></div>
+    </div>
+    <div class="hero-stats" style="grid-template-columns:repeat(2,1fr);margin-bottom:8px;">
+      <div class="stat"><div class="num" style="font-size:18px;">${marathonRace?secToTime(timeToSec(marathonRace.time)):'—'}</div><div class="lbl">Marathon PB</div><div class="sub2">${marathonPace?marathonPace+' /mi':'—'}</div></div>
+      <div class="stat"><div class="num" style="font-size:18px;">${halfRace?secToTime(timeToSec(halfRace.time)):'—'}</div><div class="lbl">Half PB</div><div class="sub2">${halfPace?halfPace+' /mi':'—'}</div></div>
+    </div>
+    <div class="hero-stats" style="grid-template-columns:repeat(2,1fr);">
+      <div class="stat"><div class="num" style="font-size:18px;">${tenMilerRace?secToTime(timeToSec(tenMilerRace.time)):'—'}</div><div class="lbl">10 Miler PB</div><div class="sub2">${tenMilerPace?tenMilerPace+' /mi':'—'}</div></div>
+      <div class="stat">
+        <input type="text" id="fiveKPBInput" value="${manualPBs.fiveK||''}" style="width:100%;background:transparent;border:none;color:var(--hivis);text-align:center;font-family:'Bebas Neue';font-size:18px;padding:0;">
+        <div class="lbl">5K PB (manual)</div>
+        <div class="sub2">${fiveKPace?fiveKPace+' /mi':'—'}</div>
+      </div>
+    </div>
+  `;
+  document.getElementById('fiveKPBInput').addEventListener('change', e=>{
+    manualPBs.fiveK = e.target.value;
+    renderRaces(); saveAll();
+  });
+  renderRaceYearly();
+}
+function secToTime(sec){
+  const h = Math.floor(sec/3600), m = Math.floor((sec%3600)/60), s = Math.round(sec%60);
+  return (h>0?h+':':'') + String(m).padStart(h>0?2:1,'0')+':'+String(s).padStart(2,'0');
+}
+
+function raceYear(dateStr){
+  // dateStr format "Mon-YY" e.g. "Sep-11" -> 2011
+  if(!dateStr) return null;
+  const parts = dateStr.split('-');
+  if(parts.length<2) return null;
+  const yy = parseInt(parts[1], 10);
+  if(isNaN(yy)) return null;
+  return 2000 + yy;
+}
+function renderRaceYearly(){
+  const body = document.getElementById('raceYearBody');
+  if(!body) return;
+  const byYear = {};
+  races.forEach(r=>{
+    const y = raceYear(r.date);
+    if(y==null) return;
+    if(!byYear[y]) byYear[y] = {tenMile:0, half:0, marathon:0, ultraM:0, miles:0};
+    const dist = Number(r.dist)||0;
+    if(r.type==='10 Miler') byYear[y].tenMile++;
+    else if(r.type==='Half Marathon') byYear[y].half++;
+    else if(r.type==='Marathon') byYear[y].marathon++;
+    else byYear[y].ultraM++; // Mountain, Ultra, 3/4 Marathon, or anything else
+    byYear[y].miles += dist;
+  });
+  const years = Object.keys(byYear).map(Number).sort((a,b)=>a-b);
+  let grandTotal = 0, grandMiles = 0;
+  years.forEach(y=>{
+    const row = byYear[y];
+    row.total = row.tenMile + row.half + row.marathon + row.ultraM;
+    grandTotal += row.total;
+    grandMiles += row.miles;
+  });
+
+  body.innerHTML = '';
+  years.forEach(y=>{
+    const row = byYear[y];
+    const pct = grandTotal ? (row.total/grandTotal*100) : 0;
+    const milesPct = grandMiles ? (row.miles/grandMiles*100) : 0;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${y}</td>
+      <td class="mono">${row.tenMile}</td>
+      <td class="mono">${row.half}</td>
+      <td class="mono">${row.marathon}</td>
+      <td class="mono">${row.ultraM}</td>
+      <td class="mono">${row.total}</td>
+      <td class="mono">${fmtNum(pct,0)}%</td>
+      <td class="mono">${fmtNum(row.miles,0)}</td>
+      <td class="mono">${fmtNum(milesPct,0)}%</td>
+    `;
+    body.appendChild(tr);
+  });
+  const totRow = document.createElement('tr');
+  totRow.className = 'totals';
+  const tenMileTot = years.reduce((a,y)=>a+byYear[y].tenMile,0);
+  const halfTot = years.reduce((a,y)=>a+byYear[y].half,0);
+  const marathonTot = years.reduce((a,y)=>a+byYear[y].marathon,0);
+  const ultraMTot = years.reduce((a,y)=>a+byYear[y].ultraM,0);
+  totRow.innerHTML = `
+    <td>Totals</td>
+    <td class="mono">${tenMileTot}</td>
+    <td class="mono">${halfTot}</td>
+    <td class="mono">${marathonTot}</td>
+    <td class="mono">${ultraMTot}</td>
+    <td class="mono">${grandTotal}</td>
+    <td></td>
+    <td class="mono">${fmtNum(grandMiles,0)}</td>
+    <td></td>
+  `;
+  body.appendChild(totRow);
+}
+
+function renderAll(){ renderHero(); renderWeekly(); renderMonthly(); renderShoes(); renderRaces(); renderDashboard(); renderPlanning(); renderCalendar(); }
+
+// ---------- tabs ----------
+document.querySelectorAll('.tab').forEach(tab=>{
+  tab.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('panel-'+tab.dataset.tab).classList.add('active');
+    tab.scrollIntoView({behavior:'smooth', inline:'center', block:'nearest'});
+  });
+});
+
+document.getElementById('planWeeksInput').addEventListener('change', ()=>{
+  renderPlanning();
+});
+
+document.getElementById('calPrev').addEventListener('click', ()=>{
+  calendarMonth--;
+  if(calendarMonth<0){ calendarMonth=11; calendarYear--; }
+  renderCalendar();
+});
+document.getElementById('calNext').addEventListener('click', ()=>{
+  calendarMonth++;
+  if(calendarMonth>11){ calendarMonth=0; calendarYear++; }
+  renderCalendar();
+});
+
+// ---------- add buttons ----------
+document.getElementById('resetWeekDetail').addEventListener('click', ()=>{
+  selectedTrendWeekId = null;
+  renderTrendChart();
+  renderWeekDetail();
+});
+document.getElementById('addWeek').addEventListener('click', ()=>{
+  const last = weekly[weekly.length-1];
+  const now = new Date();
+  const localISO = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+  const start = last ? isoAddDays(last.start, 7) : localISO;
+  weekly.push({id:newId(), start, days:[0,0,0,0,0,0,0].map(()=>({miles:0,shoe:'',splits:[]})), elev:0, pace:''});
+  renderWeekly(); renderHero(); renderMonthly(); renderPlanning(); saveAll();
+});
+document.getElementById('addYear').addEventListener('click', ()=>{
+  const years = getAllYears();
+  const suggested = years.length ? Math.max(...years)+1 : new Date().getFullYear();
+  const input = prompt('Add which year?', suggested);
+  if(!input) return;
+  const year = parseInt(input, 10);
+  if(!year || year < 2000 || year > 2100) return;
+  ensureYearMeta(year);
+  selectedMonthlyYear = year;
+  renderMonthly(); saveAll();
+});
+document.getElementById('addShoe').addEventListener('click', ()=>{
+  shoes.push({id:newId(), name:'New Shoe', pre:0, bought:'', price:0});
+  renderShoes(); saveAll();
+});
+document.getElementById('addRace').addEventListener('click', ()=>{
+  races.push({id:newId(), type:'', race:'', date:'', time:'', dist:0, pos:'', note:''});
+  renderRaces(); saveAll();
+});
+
+// ---------- backup: export / import ----------
+function exportData(){
+  const payload = {
+    exportedAt: new Date().toISOString(),
+    app: "Ciaran's Running Log",
+    weekly, monthly, shoes, races, yearMeta, manualPBs
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `running-log-backup-${todayISO()}.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url), 1000);
+}
+function importDataFromFile(file){
+  if(!file) return;
+  const proceed = confirm('This will overwrite all data currently saved in this app with the contents of that backup file. Continue?');
+  if(!proceed) return;
+  const reader = new FileReader();
+  reader.onload = async (e)=>{
+    try{
+      const data = JSON.parse(e.target.result);
+      if(!data.weekly || !data.monthly){
+        alert("That doesn't look like a backup file exported from this app.");
+        return;
+      }
+      weekly = data.weekly || [];
+      monthly = data.monthly || [];
+      shoes = data.shoes || [];
+      races = data.races || [];
+      yearMeta = data.yearMeta || [];
+      manualPBs = data.manualPBs || {};
+      await saveAll();
+      renderAll();
+      alert('Import complete — your data has been restored.');
+    }catch(err){
+      alert("Couldn't read that file — make sure it's an unmodified backup exported from this app.");
+    }
+  };
+  reader.readAsText(file);
+}
+document.getElementById('exportDataBtn').addEventListener('click', exportData);
+document.getElementById('importDataBtn').addEventListener('click', ()=>{
+  document.getElementById('importFileInput').click();
+});
+document.getElementById('importFileInput').addEventListener('change', e=>{
+  const file = e.target.files[0];
+  importDataFromFile(file);
+  e.target.value = '';
+});
+
+loadAll();
+</script>
+</body>
+</html>
