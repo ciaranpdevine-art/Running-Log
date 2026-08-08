@@ -1,0 +1,15 @@
+{
+  "name": "Ciaran's Running Log",
+  "short_name": "Running Log",
+  "description": "Personal running mileage, shoe rotation, and race log.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#F6F7F9",
+  "theme_color": "#F6F7F9",
+  "orientation": "portrait",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
