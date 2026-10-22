@@ -212,7 +212,7 @@
 </div>
 <span class="logout-link" id="logoutLink" style="display:none;">Log out</span>
 <div id="loadErrorBanner" style="display:none;position:fixed;top:0;left:0;right:0;background:#DC3545;color:#fff;font-size:12px;text-align:center;padding:10px 14px;z-index:99;">
-  Couldn't load your data from the cloud right now — showing nothing rather than risk overwriting it. Check your connection and refresh. Nothing has been changed or deleted.
+  Couldn't load your data from the cloud right now, so saving is paused to protect it. Check your connection and refresh. Nothing has been changed or deleted.
 </div>
 
 <header>
@@ -667,51 +667,59 @@ async function migrateLocalDataIfNeeded(){
   }
 }
 
+// SAFETY: saving stays off until a full, successful load. Otherwise a failed
+// load (bad signal) would leave empty data on screen and the next edit would
+// overwrite everything in the cloud with it.
+let loadOk = false;
+const DATA_KEYS = ['weekly-data-v5','monthly-data-v7','shoes-data-v3','races-data-v1','year-meta-v1','manual-pbs-v1'];
 async function loadAll(){
+  loadOk = false;
   try{
-    const w = await storage.get('weekly-data-v5');
-    const m = await storage.get('monthly-data-v7');
-    const s = await storage.get('shoes-data-v3');
-    const r = await storage.get('races-data-v1');
-    const y = await storage.get('year-meta-v1');
-    const p = await storage.get('manual-pbs-v1');
-    const allReadsOk = w.ok && m.ok && s.ok && r.ok && y.ok && p.ok;
-    if(!allReadsOk){
+    const res = {};
+    for(const k of DATA_KEYS) res[k] = await storage.get(k);
+    if(!DATA_KEYS.every(k=>res[k].ok)){
       // a real read failure — never reseed or save over existing cloud data on a guess
       showLoadError();
       renderAll();
       return;
     }
-    const allExist = w.exists && m.exists && s.exists && r.exists && y.exists && p.exists;
-    if(allExist){
-      weekly = JSON.parse(w.value);
-      monthly = JSON.parse(m.value);
-      shoes = JSON.parse(s.value);
-      races = JSON.parse(r.value);
-      yearMeta = JSON.parse(y.value);
-      manualPBs = JSON.parse(p.value);
-    } else {
-      // reads succeeded and genuinely found nothing — safe to treat as a new account
-      seedData();
-      await saveAll();
+    const anyExist = DATA_KEYS.some(k=>res[k].exists);
+    // Start from the defaults, then use every value the cloud actually has.
+    // Only values that are genuinely missing are filled in and saved, so an
+    // existing log is never replaced by sample data.
+    seedData();
+    const missing = [];
+    const apply = {
+      'weekly-data-v5': v=>{ weekly = v; }, 'monthly-data-v7': v=>{ monthly = v; }, 'shoes-data-v3': v=>{ shoes = v; },
+      'races-data-v1': v=>{ races = v; }, 'year-meta-v1': v=>{ yearMeta = v; }, 'manual-pbs-v1': v=>{ manualPBs = v; },
+    };
+    for(const k of DATA_KEYS){
+      if(res[k].exists){
+        try{ apply[k](JSON.parse(res[k].value)); }
+        catch(e){ console.error('Unreadable saved data for', k, e); showLoadError(); renderAll(); return; }
+      } else missing.push(k);
     }
-    // run types are loaded separately — a missing key here (e.g. first time after this
-    // update) must never trigger re-seeding of the six data sets checked above
     const rt = await storage.get('run-types-v1');
-    if(rt.ok && rt.exists){
-      runTypes = JSON.parse(rt.value);
-    } else if(rt.ok && !runTypes.length){
-      runTypes = [
-        {id:'easy', label:'Easy', color:'#5C8A00'},
-        {id:'session', label:'Session', color:'#DC3545'},
-        {id:'easylong', label:'Easy Long', color:'#2F7DE1'},
-        {id:'trail', label:'Trail', color:'#B4690E'},
-        {id:'race', label:'Race', color:'#8B5FBF'},
-      ];
-      await storage.set('run-types-v1', JSON.stringify(runTypes));
+    if(!rt.ok){ showLoadError(); renderAll(); return; }
+    if(rt.exists){ try{ runTypes = JSON.parse(rt.value); }catch(e){ showLoadError(); renderAll(); return; } }
+    loadOk = true;
+    hideLoadError();
+    const toSave = {
+      'weekly-data-v5': ()=>weekly, 'monthly-data-v7': ()=>monthly, 'shoes-data-v3': ()=>shoes,
+      'races-data-v1': ()=>races, 'year-meta-v1': ()=>yearMeta, 'manual-pbs-v1': ()=>manualPBs,
+    };
+    if(anyExist){
+      // existing account: fill in only what's missing, with empty (not sample) data
+      const empty = { 'weekly-data-v5':[], 'monthly-data-v7':[], 'shoes-data-v3':[], 'races-data-v1':[], 'year-meta-v1':[], 'manual-pbs-v1':{} };
+      for(const k of missing){ apply[k](empty[k]); await storage.set(k, JSON.stringify(empty[k])); }
+    } else {
+      // brand-new account: save the starter data
+      for(const k of DATA_KEYS) await storage.set(k, JSON.stringify(toSave[k]()));
     }
+    if(!rt.exists) await storage.set('run-types-v1', JSON.stringify(runTypes));
   }catch(e){
     console.error('loadAll unexpected error', e);
+    loadOk = false;
     showLoadError();
   }
   renderAll();
@@ -720,7 +728,12 @@ function showLoadError(){
   const el = document.getElementById('loadErrorBanner');
   if(el) el.style.display = 'block';
 }
+function hideLoadError(){
+  const el = document.getElementById('loadErrorBanner');
+  if(el) el.style.display = 'none';
+}
 async function saveAll(){
+  if(!loadOk){ showLoadError(); return; } // never save over the cloud after a failed load
   try{
     await storage.set('weekly-data-v5', JSON.stringify(weekly));
     await storage.set('monthly-data-v7', JSON.stringify(monthly));
@@ -2076,6 +2089,7 @@ function importDataFromFile(file){
   const reader = new FileReader();
   reader.onload = async (e)=>{
     try{
+      if(!loadOk){ alert("Can't restore right now because your data hasn't loaded from the cloud. Check your connection, refresh, then try again."); return; }
       const data = JSON.parse(e.target.result);
       if(!data.weekly || !data.monthly){
         alert("That doesn't look like a backup file exported from this app.");
